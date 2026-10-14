@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/* Design tokens — "Retro Pixel Gray" */
+@theme {
+  --color-night-950: #222222;
+  --color-night-900: #2e2e2e;
+  --color-night-800: #3a3a3a;
+  --color-night-700: #484848;
+  --color-night-600: #5c5c5c;
+  --color-neon: #ffd23f;
+  --color-live: #ff4d4d;
+  --color-muted: #c4c4c4;
+  --color-pixel-ink: #141414;
+
+  --font-display: var(--font-silkscreen), ui-monospace, monospace;
+  --font-sans: var(--font-pixelify), ui-monospace, monospace;
+
+  --animate-pulse-live: pulse-live 1s steps(1, end) infinite;
+
+  @keyframes pulse-live {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #5a5a5a;
+  /* Họa tiết caro 2px như dither của máy 8-bit */
+  background-image: repeating-conic-gradient(rgb(0 0 0 / 0.06) 0% 25%, transparent 0% 50%);
+  background-size: 4px 4px;
+  color: #f2f2f2;
+  font-family: var(--font-sans);
+  letter-spacing: 0.02em;
+}
+
+/* Pixel look: không bo góc, không chuyển động mượt. */
+*, *::before, *::after {
+  transition: none !important;
+}
+[class*="rounded"] {
+  border-radius: 0 !important;
+}
+
+/* Khung panel: viền ngoài khuyết góc + vát sáng/tối bên trong. */
+.glass {
+  background: var(--color-night-800);
+  border: 0;
+  box-shadow:
+    0 -4px 0 0 var(--color-pixel-ink),
+    0 4px 0 0 var(--color-pixel-ink),
+    -4px 0 0 0 var(--color-pixel-ink),
+    4px 0 0 0 var(--color-pixel-ink),
+    inset 4px 4px 0 0 rgb(255 255 255 / 0.14),
+    inset -4px -4px 0 0 rgb(0 0 0 / 0.35);
+}
+
+/* Nút bấm: nổi lên, ấn xuống khi click. */
+.pixel-btn {
+  background: var(--color-night-700);
+  box-shadow:
+    inset 2px 2px 0 0 rgb(255 255 255 / 0.22),
+    inset -2px -2px 0 0 rgb(0 0 0 / 0.4),
+    0 0 0 2px var(--color-pixel-ink),
+    4px 4px 0 2px var(--color-pixel-ink);
+}
+.pixel-btn:hover {
+  background: var(--color-night-600);
+}
+.pixel-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow:
+    inset 2px 2px 0 0 rgb(0 0 0 / 0.4),
+    inset -2px -2px 0 0 rgb(255 255 255 / 0.15),
+    0 0 0 2px var(--color-pixel-ink);
+}
+
+/* Nút nhấn mạnh (nền vàng) dùng chung ở web và admin. */
+.bg-neon {
+  box-shadow:
+    inset 2px 2px 0 0 rgb(255 255 255 / 0.55),
+    inset -2px -2px 0 0 rgb(0 0 0 / 0.3),
+    0 0 0 2px var(--color-pixel-ink);
+}
+
+.pixel-row {
+  background: var(--color-night-900);
+  box-shadow:
+    inset 0 2px 0 0 rgb(255 255 255 / 0.07),
+    inset 0 -2px 0 0 rgb(0 0 0 / 0.4);
+}
+.pixel-row:hover {
+  background: var(--color-night-700);
+}
+
+.pixel-tag {
+  box-shadow: 0 0 0 2px var(--color-pixel-ink);
+}
+
+/* Ô nhập: lõm xuống. */
+input,
+textarea,
+select {
+  border: 2px solid var(--color-pixel-ink);
+  box-shadow: inset 3px 3px 0 0 rgb(0 0 0 / 0.45);
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--color-neon);
+  outline-offset: 0;
+}
+:focus-visible {
+  outline: 2px solid var(--color-neon);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-neon);
+  color: var(--color-pixel-ink);
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-night-950);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-night-600);
+  border: 2px solid var(--color-pixel-ink);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

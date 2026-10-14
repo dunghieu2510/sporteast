@@ -1,0 +1,24 @@
+{
+  "name": "arena",
+  "private": true,
+  "packageManager": "npm@11.12.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:generate": "npm run generate -w @arena/db",
+    "db:migrate": "npm run migrate -w @arena/db",
+    "db:seed": "npm run seed -w @arena/db",
+    "db:studio": "npm run studio -w @arena/db"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.3"
+  }
+}

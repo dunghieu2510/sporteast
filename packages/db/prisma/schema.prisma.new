@@ -1,0 +1,33 @@
+// Add to end of existing schema.prisma
+
+// ───────────── Crawler ─────────────
+
+model CrawlLog {
+  id           String   @id @default(cuid())
+  source       String   // "StreamEast"
+  status       String   // "success" or "failed"
+  matchCount   Int      @default(0)
+  createdCount Int      @default(0)
+  updatedCount Int      @default(0)
+  failedCount  Int      @default(0)
+  errorMsg     String?
+  createdAt    DateTime @default(now())
+
+  @@index([source, createdAt])
+  @@index([status, createdAt])
+}
+
+model MatchSource {
+  id           String   @id @default(cuid())
+  matchId      String
+  sourceUrl    String   // "https://streameast.cool/nfl/..."
+  sourceType   String   // "streameast", "espn", "reddit"
+  externalId   String?  // ID from source
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, sourceUrl])
+  @@index([sourceType])
+}

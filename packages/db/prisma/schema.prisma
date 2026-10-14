@@ -1,0 +1,382 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────── Enums ─────────────
+
+enum Role {
+  VIEWER
+  CREATOR
+  MODERATOR
+  ADMIN
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+}
+
+/// Generic across sports: touchdown/basket/goal = SCORE, KO/submission/decision = FINISH
+enum MatchEventType {
+  SCORE
+  PENALTY
+  PERIOD_START
+  PERIOD_END
+  FINISH
+  OTHER
+}
+
+enum StreamStatus {
+  IDLE
+  LIVE
+  ENDED
+}
+
+/// Nguồn nội dung — chỉ những nguồn hợp pháp
+enum ContentSource {
+  UGC             // creator tự phát sóng (watch-party, bình luận, giải phong trào)
+  OFFICIAL_EMBED  // nhúng kênh chính thức (YouTube/Twitch của giải, CLB)
+  LICENSED        // nội dung nền tảng có bản quyền
+}
+
+enum FollowTarget {
+  TEAM
+  LEAGUE
+  CHANNEL
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum DmcaStatus {
+  RECEIVED
+  TAKEN_DOWN
+  REJECTED
+}
+
+// ───────────── Nội dung quản trị ─────────────
+
+/// Trang category (/sport/<slug>) và mục trên menu
+model Category {
+  id              String   @id @default(cuid())
+  /// Khớp với league.slug hoặc sport.slug để lọc trận
+  slug            String   @unique
+  name            String
+  icon            String?
+  sortOrder       Int      @default(0)
+  active          Boolean  @default(true)
+  /// H1 của trang; mặc định "<name> Schedule & Scores"
+  heading         String?
+  /// Mô tả ngắn dưới H1
+  description     String?  @db.Text
+  contentTitle    String?
+  /// Nội dung SEO bên dưới danh sách trận (markdown đơn giản)
+  content         String?  @db.LongText
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// Trang tĩnh: Privacy, Terms, DMCA, Contact, About...
+model Page {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  content         String   @db.LongText
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  published       Boolean  @default(true)
+  showInFooter    Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ───────────── Người dùng ─────────────
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  username    String       @unique
+  avatarUrl   String?      @db.Text
+  role        Role         @default(VIEWER)
+  /// Argon2id hash; null for non-admin accounts that never log in
+  passwordHash String?     @db.Text
+  /// TOTP secret, AES-256-GCM encrypted at rest
+  totpSecret   String?     @db.Text
+  totpEnabled  Boolean     @default(false)
+  /// Brute-force lockout
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  channel     Channel?
+  follows     Follow[]
+  predictions Prediction[]
+  reports     Report[]
+  sessions    AdminSession[]
+}
+
+/// Server-side admin session. Cookie holds the raw token; DB stores only its SHA-256 hash.
+model AdminSession {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent  String?  @db.Text
+  ip         String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ───────────── Thể thao ─────────────
+
+model Sport {
+  id      String   @id @default(cuid())
+  name    String
+  slug    String   @unique
+  icon    String?
+  leagues League[]
+}
+
+model League {
+  id         String  @id @default(cuid())
+  sportId    String
+  name       String
+  /// Label shown in lists, e.g. "NBA", "MMA"
+  shortName  String
+  slug       String  @unique
+  /// Accent color for the league bar in lists
+  color      String  @default("#64748b")
+  icon       String?
+  country    String?
+  logoUrl    String? @db.Text
+  season     String?
+  externalId String? @unique
+
+  sport   Sport   @relation(fields: [sportId], references: [id])
+  teams   Team[]
+  matches Match[]
+}
+
+model Team {
+  id             String  @id @default(cuid())
+  leagueId       String
+  name           String
+  shortName      String
+  slug           String  @unique
+  logoUrl        String? @db.Text
+  /// Dùng cho theme động trên trang trận
+  primaryColor   String  @default("#64748b")
+  secondaryColor String  @default("#0f172a")
+  externalId     String? @unique
+
+  league      League  @relation(fields: [leagueId], references: [id])
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+  events      MatchEvent[]
+}
+
+model Match {
+  id         String      @id @default(cuid())
+  slug       String      @unique
+  leagueId   String
+  /// Display title, e.g. "Kansas City Chiefs vs Buffalo Bills" or "UFC Fight Night: Main Card"
+  title      String
+  /// Optional: MMA cards have no teams
+  homeTeamId String?
+  awayTeamId String?
+  startTime  DateTime
+  status     MatchStatus @default(SCHEDULED)
+  homeScore  Int         @default(0)
+  awayScore  Int         @default(0)
+  /// Quarter / period / round
+  period     Int?
+  /// Game clock within the period, e.g. "8:42"
+  clock      String?
+  venue      String?
+  externalId String?     @unique
+  /// Game Information + Last Five Games (MatchDetails in @arena/types)
+  details    Json?
+  updatedAt  DateTime    @updatedAt
+
+  league      League       @relation(fields: [leagueId], references: [id])
+  homeTeam    Team?        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam    Team?        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  events      MatchEvent[]
+  streams     Stream[]
+  highlights  Highlight[]
+  predictions Prediction[]
+  embeds      MatchEmbed[]
+
+  @@index([status, startTime])
+}
+
+/// Link embed (iframe) do admin gắn cho từng trận
+model MatchEmbed {
+  id        String   @id @default(cuid())
+  matchId   String
+  title     String
+  url       String   @db.Text
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, sortOrder])
+}
+
+model MatchEvent {
+  id         String         @id @default(cuid())
+  matchId    String
+  teamId     String?
+  type       MatchEventType
+  period     Int
+  clock      String?
+  detail     String?        @db.Text
+  createdAt  DateTime       @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  team  Team? @relation(fields: [teamId], references: [id])
+
+  @@index([matchId, createdAt])
+}
+
+// ───────────── Streaming ─────────────
+
+model Channel {
+  id         String   @id @default(cuid())
+  ownerId    String   @unique
+  handle     String   @unique
+  title      String
+  bio        String?  @db.Text
+  avatarUrl  String?  @db.Text
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  owner   User     @relation(fields: [ownerId], references: [id])
+  streams Stream[]
+}
+
+model Stream {
+  id            String        @id @default(cuid())
+  channelId     String
+  matchId       String?
+  title         String
+  status        StreamStatus  @default(IDLE)
+  contentSource ContentSource @default(UGC)
+  /// Chỉ lưu hash, không bao giờ lưu stream key gốc
+  streamKeyHash String?       @unique
+  playbackId    String?
+  /// Với OFFICIAL_EMBED: URL nhúng của kênh chính thức
+  embedUrl      String?       @db.Text
+  viewerPeak    Int           @default(0)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime      @default(now())
+
+  channel  Channel       @relation(fields: [channelId], references: [id])
+  match    Match?        @relation(fields: [matchId], references: [id])
+  vods     Vod[]
+  dmca     DmcaRequest[]
+
+  @@index([status])
+}
+
+model Vod {
+  id           String   @id @default(cuid())
+  streamId     String
+  url          String   @db.Text
+  durationSec  Int
+  thumbnailUrl String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+}
+
+model Highlight {
+  id           String   @id @default(cuid())
+  matchId      String
+  title        String
+  url          String   @db.Text
+  thumbnailUrl String?  @db.Text
+  source       String
+  createdAt    DateTime @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+// ───────────── Cộng đồng ─────────────
+
+model Follow {
+  userId     String
+  targetType FollowTarget
+  targetId   String
+  createdAt  DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, targetType, targetId])
+  @@index([targetType, targetId])
+}
+
+model Prediction {
+  id        String   @id @default(cuid())
+  userId    String
+  matchId   String
+  homePred  Int
+  awayPred  Int
+  points    Int?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+}
+
+// ───────────── Kiểm duyệt & pháp lý ─────────────
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  targetType String
+  targetId   String
+  reason     String       @db.Text
+  status     ReportStatus @default(OPEN)
+  createdAt  DateTime     @default(now())
+
+  reporter User @relation(fields: [reporterId], references: [id])
+}
+
+model DmcaRequest {
+  id          String     @id @default(cuid())
+  streamId    String
+  claimant    String
+  evidenceUrl String     @db.Text
+  status      DmcaStatus @default(RECEIVED)
+  createdAt   DateTime   @default(now())
+  handledAt   DateTime?
+
+  stream Stream @relation(fields: [streamId], references: [id])
+}

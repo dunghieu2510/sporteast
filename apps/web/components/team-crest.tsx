@@ -1,0 +1,24 @@
+import type { TeamSummary } from "@arena/types";
+
+const sizes = { sm: "size-9 text-[10px]", md: "size-12 text-xs", lg: "size-20 text-base" };
+
+/** Logo đội; khi chưa có ảnh thì vẽ huy hiệu từ màu đội. */
+export function TeamCrest({ team, size = "md" }: { team: TeamSummary; size?: keyof typeof sizes }) {
+  if (team.logoUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={team.logoUrl} alt={team.name} className={`${sizes[size]} object-contain`} />;
+  }
+  return (
+    <span
+      aria-label={team.name}
+      className={`${sizes[size]} pixel-tag grid shrink-0 place-items-center font-display font-bold`}
+      style={{
+        background: team.primaryColor,
+        color: team.secondaryColor,
+        boxShadow: "inset 3px 3px 0 0 rgb(255 255 255 / 0.3), inset -3px -3px 0 0 rgb(0 0 0 / 0.35), 0 0 0 2px #141414",
+      }}
+    >
+      {team.shortName}
+    </span>
+  );
+}
