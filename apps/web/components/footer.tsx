@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-import { getCategories, getPages } from "@/lib/api";
+import { getCategories, getPages, getSettings } from "@/lib/api";
 import { Logo } from "@/components/logo";
 
 export async function Footer() {
   const currentYear = new Date().getFullYear();
-  const [pages, categories] = await Promise.all([getPages(), getCategories()]);
+  const [pages, categories, { data: settings }] = await Promise.all([getPages(), getCategories(), getSettings()]);
   const links = (pages.data ?? []).filter((p) => p.showInFooter).map((p) => ({ label: p.title, href: `/${p.slug}` }));
   const sportLinks = (categories.data ?? []).map((c) => ({ label: c.name, href: `/sport/${c.slug}` }));
 
@@ -16,7 +16,7 @@ export async function Footer() {
           {/* Brand */}
           <div>
             <div className="mb-4">
-              <Logo size={36} />
+              <Logo size={36} main={settings?.logoTextMain} accent={settings?.logoTextAccent} />
             </div>
             <p className="text-sm text-muted">
               Live sports schedules, scores and community livestreams for NFL, NBA, NHL, MLB and more.

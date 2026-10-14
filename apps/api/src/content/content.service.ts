@@ -99,6 +99,24 @@ export class ContentService implements OnApplicationBootstrap {
     }
   }
 
+  // ───── Site settings (singleton) ─────
+
+  getSettings() {
+    return this.prisma.siteSettings.upsert({ where: { id: "default" }, update: {}, create: { id: "default" } });
+  }
+
+  async updateSettings(body: Body) {
+    const main = typeof body.logoTextMain === "string" ? body.logoTextMain.trim() : "";
+    if (!main || main.length > 24) throw new BadRequestException(`"logoTextMain" must be 1–24 characters`);
+    const accent = typeof body.logoTextAccent === "string" ? body.logoTextAccent.trim() : "";
+    if (accent.length > 24) throw new BadRequestException(`"logoTextAccent" must be at most 24 characters`);
+    return this.prisma.siteSettings.upsert({
+      where: { id: "default" },
+      update: { logoTextMain: main, logoTextAccent: accent },
+      create: { id: "default", logoTextMain: main, logoTextAccent: accent },
+    });
+  }
+
   // ───── Categories ─────
 
   listCategories(includeInactive = false) {

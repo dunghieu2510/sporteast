@@ -123,9 +123,9 @@ export default async function MatchPage({ params }: Props) {
       <div className="flex flex-col gap-6">
         {match.embeds.length > 0 ? (
           <EmbedPlayer embeds={match.embeds} title={match.title} />
-        ) : (
+        ) : stream?.embedUrl ? (
           <Player stream={stream} />
-        )}
+        ) : null}
         <Timeline events={match.events} match={match} />
         <LastFiveGames match={match} />
         <GameInformation match={match} />

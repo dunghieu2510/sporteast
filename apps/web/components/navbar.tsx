@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { getCategories } from "@/lib/api";
+import { getCategories, getSettings } from "@/lib/api";
 import { Logo, LogoMark } from "@/components/logo";
 
 export async function Navbar() {
-  const { data } = await getCategories();
+  const [{ data }, { data: settings }] = await Promise.all([getCategories(), getSettings()]);
   const sports = (data ?? []).map((c) => ({ label: c.name, slug: c.slug, icon: c.icon }));
 
   return (
@@ -15,7 +15,7 @@ export async function Navbar() {
               <LogoMark size={34} />
             </span>
             <span className="hidden sm:block">
-              <Logo size={34} />
+              <Logo size={34} main={settings?.logoTextMain} accent={settings?.logoTextAccent} />
             </span>
           </Link>
           <nav className="flex gap-3 pr-2">
@@ -29,13 +29,15 @@ export async function Navbar() {
                 {s.label}
               </Link>
             ))}
-            <button
-              type="button"
+            <a
+              href="https://www.espn.com/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="pixel-btn flex shrink-0 items-center gap-1 px-3 py-1.5 text-xs font-semibold text-muted hover:text-white sm:px-4 sm:text-sm"
             >
               More Sports
               <span className="text-[10px]">›</span>
-            </button>
+            </a>
           </nav>
         </div>
       </div>

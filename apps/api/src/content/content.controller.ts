@@ -28,6 +28,11 @@ export class ContentController {
   page(@Param("slug") slug: string) {
     return this.content.getPage(slug);
   }
+
+  @Get("settings")
+  settings() {
+    return this.content.getSettings();
+  }
 }
 
 /** Admin endpoints (include drafts / hidden items, and allow writes). */
@@ -39,6 +44,16 @@ export class ContentAdminController {
   @Get("check")
   check() {
     return { ok: true };
+  }
+
+  @Get("settings")
+  getSettings() {
+    return this.content.getSettings();
+  }
+
+  @Put("settings")
+  updateSettings(@Body() body: Payload) {
+    return this.content.updateSettings(body ?? {});
   }
 
   @Get("categories")

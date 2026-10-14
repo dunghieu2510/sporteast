@@ -37,13 +37,24 @@ export function LogoMark({ size = 32 }: { size?: number }) {
   );
 }
 
-/** Mark + "SPORT" in white and "EAST" in yellow. */
-export function Logo({ size = 32, textClass = "text-lg" }: { size?: number; textClass?: string }) {
+/** Mark + wordmark: `main` in white and `accent` in the brand yellow. Defaults to SPORT/EAST. */
+export function Logo({
+  size = 32,
+  textClass = "text-lg",
+  main = "SPORT",
+  accent = "EAST",
+}: {
+  size?: number;
+  textClass?: string;
+  main?: string;
+  accent?: string;
+}) {
   return (
     <span className="flex items-center gap-3">
       <LogoMark size={size} />
       <span className={`font-display font-bold tracking-tight ${textClass}`}>
-        SPORT<span className="text-neon">EAST</span>
+        {main}
+        {accent && <span className="text-neon">{accent}</span>}
       </span>
     </span>
   );

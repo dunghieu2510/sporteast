@@ -128,6 +128,11 @@ export interface CategoryContent {
   metaDescription: string | null;
 }
 
+export interface SiteSettings {
+  logoTextMain: string;
+  logoTextAccent: string;
+}
+
 export interface PageContent {
   id: string;
   slug: string;

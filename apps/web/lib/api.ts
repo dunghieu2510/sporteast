@@ -1,4 +1,12 @@
-import type { CategoryContent, LeagueSummary, MatchDetail, MatchStatus, MatchSummary, PageContent } from "@arena/types";
+import type {
+  CategoryContent,
+  LeagueSummary,
+  MatchDetail,
+  MatchStatus,
+  MatchSummary,
+  PageContent,
+  SiteSettings,
+} from "@arena/types";
 import { mockLeagues, mockMatchDetail, mockMatches } from "./mock";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -58,6 +66,12 @@ export function getCategory(slug: string) {
 
 export function getPages() {
   return request<PageContent[]>("/pages", () => []);
+}
+
+const DEFAULT_SETTINGS: SiteSettings = { logoTextMain: "SPORT", logoTextAccent: "EAST" };
+
+export function getSettings() {
+  return request<SiteSettings>("/settings", () => DEFAULT_SETTINGS);
 }
 
 export function getPage(slug: string) {

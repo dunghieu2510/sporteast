@@ -67,6 +67,16 @@ enum DmcaStatus {
 
 // ───────────── Nội dung quản trị ─────────────
 
+/// Cấu hình toàn site, chỉ có một bản ghi (id = "default").
+model SiteSettings {
+  id             String   @id @default("default")
+  /// Phần chữ logo màu trắng, ví dụ "SPORT"
+  logoTextMain   String   @default("SPORT")
+  /// Phần chữ logo màu nhấn (vàng), ví dụ "EAST"
+  logoTextAccent String   @default("EAST")
+  updatedAt      DateTime @updatedAt
+}
+
 /// Trang category (/sport/<slug>) và mục trên menu
 model Category {
   id              String   @id @default(cuid())

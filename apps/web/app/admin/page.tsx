@@ -9,6 +9,7 @@ const adminItems = [
   { title: "Static Pages", description: "Privacy, Terms, DMCA, Contact, About and more", href: "/admin/content/pages", icon: "📄" },
   { title: "Edit Content", description: "Home page and category content", href: "/admin/content", icon: "📝" },
   { title: "SEO Management", description: "Meta tags, sitemap, robots.txt & more", href: "/admin/seo", icon: "🔍" },
+  { title: "Site Settings", description: "Change the logo text", href: "/admin/settings", icon: "⚙️" },
   { title: "Security", description: "2FA, password and admin accounts", href: "/admin/security", icon: "🔒" },
 ];
 
