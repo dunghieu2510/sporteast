@@ -26,7 +26,7 @@ export function LogoMark({ size = 32 }: { size?: number }) {
       viewBox="0 0 16 16"
       shapeRendering="crispEdges"
       role="img"
-      aria-label="Sporteast"
+      aria-label="Methstreams"
       className="shrink-0 bg-neon"
       style={{ boxShadow: "inset 2px 2px 0 0 rgb(255 255 255 / 0.5), inset -2px -2px 0 0 rgb(0 0 0 / 0.25), 0 0 0 2px #141414" }}
     >

@@ -13,9 +13,9 @@ export async function HomeContent() {
         </h2>
 
         <p className="leading-relaxed">
-          Welcome to Sporteast, your one-stop platform for live sports schedules, real-time scores, and community livestreams.
+          Welcome to Methstreams, your one-stop platform for live sports schedules, real-time scores, and community livestreams.
           Whether you're a passionate fan of NFL football, NBA basketball, NHL hockey, MLB baseball, or international soccer,
-          Sporteast brings all the action directly to your screen. Our comprehensive sports platform aggregates games from the most
+          Methstreams brings all the action directly to your screen. Our comprehensive sports platform aggregates games from the most
           popular leagues including the NFL, NBA, NHL, MLB, WNBA, NCAAF, and world soccer competitions, ensuring you never miss
           a game.
         </p>
@@ -28,10 +28,10 @@ export async function HomeContent() {
         </p>
 
         <p className="leading-relaxed">
-          <strong>Community Livestreams & Watch Parties</strong> — Sporteast isn't just about scores and statistics. Our platform empowers
+          <strong>Community Livestreams & Watch Parties</strong> — Methstreams isn't just about scores and statistics. Our platform empowers
           fans to create and share their own livestreams, watch parties, and play-by-play commentary for games they love. Whether you're
           hosting an analysis of the latest NFL playoff matchup, streaming a live reaction to an NBA Finals game, or organizing a watch
-          party for international soccer tournaments, Sporteast provides the tools and community to enhance your sports viewing experience.
+          party for international soccer tournaments, Methstreams provides the tools and community to enhance your sports viewing experience.
         </p>
 
         <p className="leading-relaxed">
@@ -42,21 +42,21 @@ export async function HomeContent() {
 
         <p className="leading-relaxed">
           <strong>Smart Game Search & Filters</strong> — Find your favorite team's next game in seconds with our powerful search functionality.
-          Filter by league, team, or time frame to create a personalized schedule. Never wonder when your team plays next—Sporteast keeps you informed
+          Filter by league, team, or time frame to create a personalized schedule. Never wonder when your team plays next—Methstreams keeps you informed
           about upcoming matchups, game times, and locations.
         </p>
 
         <p className="leading-relaxed">
-          <strong>Why Choose Sporteast?</strong> Sporteast combines the best features of a sports schedule app with the community engagement of a social
-          streaming platform. Unlike traditional sports apps that only provide scores and statistics, Sporteast creates a vibrant community where fans
+          <strong>Why Choose Methstreams?</strong> Methstreams combines the best features of a sports schedule app with the community engagement of a social
+          streaming platform. Unlike traditional sports apps that only provide scores and statistics, Methstreams creates a vibrant community where fans
           can connect, discuss games, share insights, and watch together in real-time. Our platform supports all major sports and leagues, giving you
           one unified destination instead of juggling multiple apps.
         </p>
 
         <p className="leading-relaxed">
           Whether you're checking live NFL scores during Sunday football season, tracking NBA standings in real-time, following your favorite hockey
-          team's playoff run, or keeping up with international soccer matches, Sporteast delivers comprehensive sports information with a fan-first approach.
-          Join thousands of sports enthusiasts who trust Sporteast for their daily dose of live sports action, schedules, and community interaction.
+          team's playoff run, or keeping up with international soccer matches, Methstreams delivers comprehensive sports information with a fan-first approach.
+          Join thousands of sports enthusiasts who trust Methstreams for their daily dose of live sports action, schedules, and community interaction.
         </p>
       </article>
 

@@ -9,7 +9,7 @@ const silkscreen = Silkscreen({ subsets: ["latin"], weight: ["400", "700"], vari
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "Sporteast · Live Sports", template: "%s · Sporteast" },
+  title: { default: "Methstreams · Live Sports", template: "%s · Methstreams" },
   description: "NBA, NFL, NHL and MMA schedules, live scores and community livestreams.",
 };
 

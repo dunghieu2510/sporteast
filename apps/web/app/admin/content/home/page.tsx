@@ -7,8 +7,8 @@ export default function AdminHomeContent() {
   const [content, setContent] = useState({
     mainHeading: "Your Ultimate Destination for Live Sports Schedules & Scores",
     description:
-      "Welcome to Sporteast, your one-stop platform for live sports schedules, real-time scores, and community livestreams.",
-    featuredSection: `Discover the world of sports with Sporteast. Whether you're a fan of NFL football, NBA basketball, NHL hockey, or international soccer, we bring all the action to your screen with live scores, complete schedules, and community-powered livestreams.`,
+      "Welcome to Methstreams, your one-stop platform for live sports schedules, real-time scores, and community livestreams.",
+    featuredSection: `Discover the world of sports with Methstreams. Whether you're a fan of NFL football, NBA basketball, NHL hockey, or international soccer, we bring all the action to your screen with live scores, complete schedules, and community-powered livestreams.`,
   });
 
   const [saved, setSaved] = useState(false);

@@ -21,7 +21,7 @@ import {
   verifyPassword,
 } from "./crypto";
 
-const ISSUER = "Sporteast";
+const ISSUER = "Methstreams";
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8h sliding window
 const MAX_FAILED = 5;
 const LOCK_MS = 15 * 60 * 1000;

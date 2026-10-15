@@ -1,5 +1,5 @@
 const generic = (sport: string) =>
-  `Sporteast provides comprehensive ${sport} coverage with instant access to live scores, upcoming game schedules, and detailed match information. ` +
+  `Methstreams provides comprehensive ${sport} coverage with instant access to live scores, upcoming game schedules, and detailed match information. ` +
   `Whether you're checking scores during the season, planning watch parties, or analyzing team performance, our platform offers everything ${sport} fans need.`;
 
 export const defaultCategories = [
@@ -10,7 +10,7 @@ export const defaultCategories = [
     description: "National Football League schedules, live scores, and play-by-play coverage.",
     contentTitle: "Everything You Need for NFL Football",
     intro:
-      "Stay on top of the National Football League with Sporteast. Get live NFL scores, complete game schedules, and real-time updates for all 32 teams across the AFC and NFC.",
+      "Stay on top of the National Football League with Methstreams. Get live NFL scores, complete game schedules, and real-time updates for all 32 teams across the AFC and NFC.",
   },
   {
     slug: "ncaaf",
@@ -19,7 +19,7 @@ export const defaultCategories = [
     description: "College Football schedules and live game updates.",
     contentTitle: "College Football Schedules & Live Scores",
     intro:
-      "Follow your favorite college football teams with Sporteast. Get complete NCAAF schedules, live game scores, and coverage of the best college football matchups.",
+      "Follow your favorite college football teams with Methstreams. Get complete NCAAF schedules, live game scores, and coverage of the best college football matchups.",
   },
   {
     slug: "mlb",
@@ -28,7 +28,7 @@ export const defaultCategories = [
     description: "Major League Baseball schedules, scores, and standings.",
     contentTitle: "MLB Baseball Games & Live Scores",
     intro:
-      "Never miss an MLB game with Sporteast. Track the baseball season with live scores, complete schedules for all 30 teams, and real-time game updates.",
+      "Never miss an MLB game with Methstreams. Track the baseball season with live scores, complete schedules for all 30 teams, and real-time game updates.",
   },
   {
     slug: "nba",
@@ -55,7 +55,7 @@ export const defaultCategories = [
     description: "Women's Basketball League schedules and live game updates.",
     contentTitle: "WNBA Basketball Schedules & Live Scores",
     intro:
-      "Follow women's professional basketball with Sporteast. Get complete WNBA schedules, live game scores, and coverage of the best women's basketball action.",
+      "Follow women's professional basketball with Methstreams. Get complete WNBA schedules, live game scores, and coverage of the best women's basketball action.",
   },
   {
     slug: "nhl",
@@ -64,7 +64,7 @@ export const defaultCategories = [
     description: "NHL Ice Hockey schedules, live scores, and season standings.",
     contentTitle: "NHL Hockey Schedule & Live Scores",
     intro:
-      "Stay on the ice with Sporteast. Get live NHL scores, complete hockey schedules, and real-time updates for all 32 NHL teams across the season.",
+      "Stay on the ice with Methstreams. Get live NHL scores, complete hockey schedules, and real-time updates for all 32 NHL teams across the season.",
   },
 ].map(({ intro, ...c }, i) => ({ ...c, sortOrder: i, content: `${intro}\n\n${generic(c.name)}` }));
 
@@ -74,7 +74,7 @@ export const defaultPages = [
     title: "Privacy Policy",
     content: `## Overview
 
-This Privacy Policy explains what information Sporteast collects when you visit the site and how it is used.
+This Privacy Policy explains what information Methstreams collects when you visit the site and how it is used.
 
 ## Information we collect
 
@@ -87,7 +87,7 @@ We use this information to operate and improve the site, keep it secure, and und
 
 ## Cookies
 
-Sporteast may use cookies and similar technologies to remember preferences and measure traffic. You can disable cookies in your browser settings.
+Methstreams may use cookies and similar technologies to remember preferences and measure traffic. You can disable cookies in your browser settings.
 
 ## Third-party links
 
@@ -102,11 +102,11 @@ Questions about this policy? See the Contact Us page.`,
     title: "Terms of Service",
     content: `## Acceptance of terms
 
-By using Sporteast you agree to these Terms of Service. If you do not agree, please do not use the site.
+By using Methstreams you agree to these Terms of Service. If you do not agree, please do not use the site.
 
 ## Use of the site
 
-Sporteast provides sports schedules, scores and game information for informational purposes. You agree not to misuse the site, attempt to disrupt it, or scrape it in a way that harms its performance.
+Methstreams provides sports schedules, scores and game information for informational purposes. You agree not to misuse the site, attempt to disrupt it, or scrape it in a way that harms its performance.
 
 ## Content
 
@@ -114,7 +114,7 @@ Schedules and scores are provided as-is and may contain delays or errors. Team n
 
 ## Disclaimer
 
-The site is provided without warranties of any kind. Sporteast is not liable for any loss arising from your use of the information shown.
+The site is provided without warranties of any kind. Methstreams is not liable for any loss arising from your use of the information shown.
 
 ## Changes
 
@@ -125,7 +125,7 @@ We may update these terms from time to time. Continued use of the site means you
     title: "DMCA",
     content: `## Copyright policy
 
-Sporteast respects the intellectual property rights of others and responds to valid notices of alleged copyright infringement under the Digital Millennium Copyright Act (DMCA).
+Methstreams respects the intellectual property rights of others and responds to valid notices of alleged copyright infringement under the Digital Millennium Copyright Act (DMCA).
 
 ## Filing a notice
 
@@ -164,9 +164,9 @@ We usually reply within two business days.`,
   {
     slug: "about",
     title: "About Us",
-    content: `## About Sporteast
+    content: `## About Methstreams
 
-Sporteast is a fan-first home for live sports schedules and scores. We bring together NFL, NCAAF, MLB, NBA, MLS, WNBA and NHL games in one clean, fast place so you always know what is on and when it starts.
+Methstreams is a fan-first home for live sports schedules and scores. We bring together NFL, NCAAF, MLB, NBA, MLS, WNBA and NHL games in one clean, fast place so you always know what is on and when it starts.
 
 ## What we do
 

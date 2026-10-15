@@ -17,11 +17,11 @@ export default function AdminMetaTags() {
   const [saved, setSaved] = useState(false);
   const [meta, setMeta] = useState({
     home: {
-      title: "Sporteast · Live Sports Schedules & Scores",
+      title: "Methstreams · Live Sports Schedules & Scores",
       description: "Get live sports schedules, real-time scores, and community livestreams for NFL, NBA, NHL, MLB and more.",
       keywords: ["sports", "live scores", "schedules", "livestreams"],
       canonical: "https://sporteast.com",
-      ogTitle: "Sporteast - Live Sports",
+      ogTitle: "Methstreams - Live Sports",
       ogDescription: "Your ultimate destination for live sports",
       ogImage: "https://sporteast.com/og-image.jpg",
       robotsIndex: true,

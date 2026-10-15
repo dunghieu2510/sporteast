@@ -1,7 +1,7 @@
 import { GAME_WINDOW_MS, type MatchDetail, type MatchSummary } from "@arena/types";
 import { formatKickoff } from "./format";
 
-export const SITE_NAME = "Sporteast";
+export const SITE_NAME = "Methstreams";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 type SeoMatch = Pick<MatchSummary, "title" | "league" | "startTime">;

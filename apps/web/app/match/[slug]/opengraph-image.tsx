@@ -1,17 +1,19 @@
 import { ImageResponse } from "next/og";
-import { getMatch } from "@/lib/api";
+import { getMatch, getSettings } from "@/lib/api";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Match live stream on Sporteast";
+export const alt = "Match live stream on Methstreams";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export default async function Image({ params }: Props) {
   const { slug } = await params;
-  const { data } = await getMatch(slug).catch(() => ({ data: null }));
+  const [{ data }, { data: s }] = await Promise.all([getMatch(slug).catch(() => ({ data: null })), getSettings()]);
   const title = data?.title ?? "Live Stream";
   const league = data?.league.name ?? "Live Sports";
+  const main = s?.logoTextMain ?? "SPORT";
+  const accent = s?.logoTextAccent ?? "EAST";
 
   return new ImageResponse(
     (
@@ -46,8 +48,8 @@ export default async function Image({ params }: Props) {
           {title}
         </div>
         <div style={{ display: "flex", marginTop: 56, fontSize: 32, fontWeight: 800 }}>
-          <span>SPORT</span>
-          <span style={{ color: "#ffd23f" }}>EAST</span>
+          <span>{main}</span>
+          <span style={{ color: "#ffd23f" }}>{accent}</span>
         </div>
       </div>
     ),

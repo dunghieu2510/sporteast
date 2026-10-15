@@ -10,7 +10,7 @@ export async function Navbar() {
     <header className="sticky top-0 z-40 border-b-4 border-pixel-ink bg-night-950">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
         <div className="flex h-[72px] items-center gap-6 overflow-x-auto px-1 py-2">
-          <Link href="/" aria-label="Sporteast home" className="flex shrink-0 items-center">
+          <Link href="/" aria-label="Methstreams home" className="flex shrink-0 items-center">
             <span className="sm:hidden">
               <LogoMark size={34} />
             </span>

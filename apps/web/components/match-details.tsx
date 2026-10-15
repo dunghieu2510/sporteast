@@ -87,7 +87,7 @@ export function MatchPreview({ match }: { match: MatchDetail }) {
   paragraphs.push(
     `${away.name} ${verb} ${home.name} in ${league.name} action on ${day} at ${time}` +
       `${venue ? `, at ${venue}${place ? ` in ${place}` : ""}` : ""}. ` +
-      `Follow this page for ${match.title} live streams, the start time and full game information on Sporteast, a free streameast alternative.`,
+      `Follow this page for ${match.title} live streams, the start time and full game information on Methstreams, a free streameast alternative.`,
   );
 
   if (match.status === "FINISHED" && match.homeScore + match.awayScore > 0) {
