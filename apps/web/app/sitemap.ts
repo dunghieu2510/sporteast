@@ -14,10 +14,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   for (const c of cats.data ?? []) {
-    entries.push({ url: `${SITE_URL}/sport/${c.slug}`, lastModified: now, changeFrequency: "daily", priority: 0.9 });
+    entries.push({
+      url: `${SITE_URL}/sport/${c.slug}`,
+      lastModified: c.updatedAt ? new Date(c.updatedAt) : now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    });
   }
   for (const p of pages.data ?? []) {
-    entries.push({ url: `${SITE_URL}/${p.slug}`, lastModified: now, changeFrequency: "monthly", priority: 0.3 });
+    entries.push({
+      url: `${SITE_URL}/${p.slug}`,
+      lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    });
   }
   for (const m of matches.data ?? []) {
     entries.push({

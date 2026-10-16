@@ -126,6 +126,8 @@ export interface CategoryContent {
   content: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
+  /** ISO timestamp from the API; used for sitemap <lastmod>. */
+  updatedAt?: string;
 }
 
 export interface SiteSettings {
@@ -143,6 +145,8 @@ export interface PageContent {
   published: boolean;
   showInFooter: boolean;
   sortOrder: number;
+  /** ISO timestamp from the API; used for sitemap <lastmod>. */
+  updatedAt?: string;
 }
 
 // ───────── Time-based status ─────────

@@ -67,5 +67,19 @@ export function matchJsonLd(m: MatchDetail) {
   };
 }
 
+/** Site-wide WebSite + Organization schema, rendered once in the root layout. */
+export function siteJsonLd() {
+  return [
+    { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: `${SITE_URL}/` },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: SITE_NAME,
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/opengraph-image`,
+    },
+  ];
+}
+
 /** Safe to embed in <script>: prevents "</script>" breakouts. */
 export const jsonLdString = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c");

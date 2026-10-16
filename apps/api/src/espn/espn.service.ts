@@ -3,6 +3,7 @@ import { Cron } from "@nestjs/schedule";
 import { MatchStatus, Prisma } from "@arena/db";
 import type { LastFiveGame, MatchDetails } from "@arena/types";
 import { PrismaService } from "../prisma/prisma.service";
+import { IndexNowService } from "../indexnow/indexnow.service";
 
 const ESPN_API = "https://site.api.espn.com/apis/site/v2/sports";
 const TZ = "America/New_York";
@@ -54,7 +55,10 @@ export class EspnSyncService implements OnApplicationBootstrap {
   private readonly logger = new Logger(EspnSyncService.name);
   private running = false;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly indexNow: IndexNowService,
+  ) {}
 
   onApplicationBootstrap() {
     void this.updateStatusByTime();
@@ -106,6 +110,7 @@ export class EspnSyncService implements OnApplicationBootstrap {
       const complete = results.every(Boolean);
       const seen = new Set<string>();
       const pending: PendingDetails[] = [];
+      const newPaths: string[] = [];
       let saved = 0;
 
       for (const r of results) {
@@ -117,6 +122,7 @@ export class EspnSyncService implements OnApplicationBootstrap {
             if (!res) continue;
             seen.add(res.externalId);
             saved++;
+            if (res.created) newPaths.push(`/match/${res.slug}`);
             if (res.needsDetails) {
               pending.push({ cfg: r.league, eventId: String(ev.id), externalId: res.externalId, final: res.final });
             }
@@ -128,6 +134,10 @@ export class EspnSyncService implements OnApplicationBootstrap {
 
       const removed = await this.cleanup(today, seen, complete);
       const detailed = await this.syncDetails(pending);
+
+      // New or removed matches change the home page and the new match pages → tell IndexNow.
+      if (newPaths.length || removed) this.indexNow.submit([...newPaths, "/"]);
+
       this.logger.log(
         `ESPN ${today} (ET): ${saved} matches synced, ${detailed}/${pending.length} details updated, ${removed} removed${complete ? "" : " (some leagues failed)"}`,
       );
@@ -170,7 +180,7 @@ export class EspnSyncService implements OnApplicationBootstrap {
   private async saveMatch(
     league: { id: string; slug: string },
     ev: any,
-  ): Promise<{ externalId: string; needsDetails: boolean; final: boolean } | null> {
+  ): Promise<{ externalId: string; needsDetails: boolean; final: boolean; slug: string; created: boolean } | null> {
     const comp = ev.competitions?.[0];
     const home = comp?.competitors?.find((c: any) => c.homeAway === "home");
     const away = comp?.competitors?.find((c: any) => c.homeAway === "away");
@@ -193,18 +203,18 @@ export class EspnSyncService implements OnApplicationBootstrap {
       venue: comp.venue?.fullName ?? null,
     };
 
-    const row = await this.prisma.match.upsert({
-      where: { externalId },
-      update: data,
-      create: { slug: `${slugify(homeTeam.name)}-vs-${slugify(awayTeam.name)}-${ev.id}`, externalId, ...data },
-      select: { details: true },
-    });
+    // Find-then-write (instead of upsert) so we know whether this is a brand-new match → ping IndexNow.
+    const existing = await this.prisma.match.findUnique({ where: { externalId }, select: { slug: true, details: true } });
+    const slug = existing?.slug ?? `${slugify(homeTeam.name)}-vs-${slugify(awayTeam.name)}-${ev.id}`;
+    const row = existing
+      ? await this.prisma.match.update({ where: { externalId }, data, select: { details: true } })
+      : await this.prisma.match.create({ data: { slug, externalId, ...data }, select: { details: true } });
 
     const final = status === MatchStatus.FINISHED;
     const d = row.details as unknown as MatchDetails | null;
     const needsDetails =
       !d || (final && !d.final) || (!d.final && Date.now() - Date.parse(d.fetchedAt) > DETAILS_REFRESH_MS);
-    return { externalId, needsDetails, final };
+    return { externalId, needsDetails, final, slug, created: !existing };
   }
 
   private async syncDetails(pending: PendingDetails[]): Promise<number> {

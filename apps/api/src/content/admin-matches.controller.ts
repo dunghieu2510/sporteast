@@ -14,6 +14,7 @@ import {
 import { MatchStatus } from "@arena/db";
 import { PrismaService } from "../prisma/prisma.service";
 import { SessionGuard } from "../auth/session.guard";
+import { IndexNowService } from "../indexnow/indexnow.service";
 
 const TZ = "America/New_York";
 const etDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
@@ -94,7 +95,10 @@ const matchView = {
 @Controller("admin/matches")
 @UseGuards(SessionGuard)
 export class AdminMatchesController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly indexNow: IndexNowService,
+  ) {}
 
   /** Every game of one US Eastern calendar day (default: today). */
   @Get()
@@ -131,10 +135,12 @@ export class AdminMatchesController {
     const status = parseStatus(body?.status) ?? MatchStatus.SCHEDULED;
     const slug = await this.uniqueSlug(title, startTime);
 
-    return this.prisma.match.create({
+    const match = await this.prisma.match.create({
       data: { slug, title, leagueId, startTime, status, venue, externalId: null },
       ...matchView,
     });
+    this.indexNow.submit([`/match/${match.slug}`, "/"]);
+    return match;
   }
 
   @Put(":id")
@@ -158,15 +164,18 @@ export class AdminMatchesController {
     if (b.leagueId !== undefined || b.leagueSlug !== undefined) data.leagueId = await this.resolveLeagueId(b);
 
     // Keep the slug stable so the public URL never breaks.
-    return this.prisma.match.update({ where: { id }, data, ...matchView });
+    const match = await this.prisma.match.update({ where: { id }, data, ...matchView });
+    this.indexNow.submit([`/match/${match.slug}`]);
+    return match;
   }
 
   @Delete(":id")
   async remove(@Param("id") id: string) {
-    if (!(await this.prisma.match.findUnique({ where: { id }, select: { id: true } }))) {
-      throw new NotFoundException("Match not found");
-    }
+    const match = await this.prisma.match.findUnique({ where: { id }, select: { slug: true } });
+    if (!match) throw new NotFoundException("Match not found");
     await this.prisma.match.delete({ where: { id } });
+    // Recrawl the now-gone URL (so engines drop it) and the home page.
+    this.indexNow.submit([`/match/${match.slug}`, "/"]);
     return { deleted: id };
   }
 

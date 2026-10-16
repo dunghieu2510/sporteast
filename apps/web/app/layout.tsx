@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Pixelify_Sans, Silkscreen } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
+import { jsonLdString, siteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
 const pixelify = Pixelify_Sans({ subsets: ["latin"], variable: "--font-pixelify" });
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${pixelify.variable} ${silkscreen.variable}`}>
       <body className="flex min-h-dvh flex-col antialiased">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(siteJsonLd()) }} />
         <Navbar />
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-12 sm:px-6">{children}</main>
         <Footer />

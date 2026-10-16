@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnApplicationBootstrap } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { IndexNowService } from "../indexnow/indexnow.service";
 import { defaultCategories, defaultPages } from "./defaults";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -81,7 +82,10 @@ function pageData(body: Body, partial: boolean) {
 export class ContentService implements OnApplicationBootstrap {
   private readonly logger = new Logger(ContentService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly indexNow: IndexNowService,
+  ) {}
 
   /** First run: fill empty tables with the starter categories and pages. */
   async onApplicationBootstrap() {
@@ -135,17 +139,22 @@ export class ContentService implements OnApplicationBootstrap {
   async createCategory(body: Body) {
     const slug = slugOf(body);
     if (await this.prisma.category.findUnique({ where: { slug } })) throw new ConflictException(`Category "${slug}" already exists`);
-    return this.prisma.category.create({ data: { slug, ...(categoryData(body, false) as { name: string }) } });
+    const row = await this.prisma.category.create({ data: { slug, ...(categoryData(body, false) as { name: string }) } });
+    this.indexNow.submit([`/sport/${slug}`, "/"]);
+    return row;
   }
 
   async updateCategory(slug: string, body: Body) {
     await this.getCategory(slug, true);
-    return this.prisma.category.update({ where: { slug }, data: categoryData(body, true) });
+    const row = await this.prisma.category.update({ where: { slug }, data: categoryData(body, true) });
+    this.indexNow.submit([`/sport/${slug}`, "/"]);
+    return row;
   }
 
   async removeCategory(slug: string) {
     await this.getCategory(slug, true);
     await this.prisma.category.delete({ where: { slug } });
+    this.indexNow.submit([`/sport/${slug}`, "/"]);
     return { deleted: slug };
   }
 
@@ -170,17 +179,22 @@ export class ContentService implements OnApplicationBootstrap {
   async createPage(body: Body) {
     const slug = slugOf(body, RESERVED_PAGE_SLUGS);
     if (await this.prisma.page.findUnique({ where: { slug } })) throw new ConflictException(`Page "${slug}" already exists`);
-    return this.prisma.page.create({ data: { slug, ...(pageData(body, false) as { title: string; content: string }) } });
+    const row = await this.prisma.page.create({ data: { slug, ...(pageData(body, false) as { title: string; content: string }) } });
+    this.indexNow.submit([`/${slug}`, "/"]);
+    return row;
   }
 
   async updatePage(slug: string, body: Body) {
     await this.getPage(slug, true);
-    return this.prisma.page.update({ where: { slug }, data: pageData(body, true) });
+    const row = await this.prisma.page.update({ where: { slug }, data: pageData(body, true) });
+    this.indexNow.submit([`/${slug}`, "/"]);
+    return row;
   }
 
   async removePage(slug: string) {
     await this.getPage(slug, true);
     await this.prisma.page.delete({ where: { slug } });
+    this.indexNow.submit([`/${slug}`, "/"]);
     return { deleted: slug };
   }
 }
