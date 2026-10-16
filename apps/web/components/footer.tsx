@@ -2,13 +2,13 @@ import Link from "next/link";
 
 import { getCategories, getPages, getSettings } from "@/lib/api";
 import { Logo } from "@/components/logo";
+import { SITE_NAME } from "@/lib/seo";
 
 export async function Footer() {
   const currentYear = new Date().getFullYear();
   const [pages, categories, { data: settings }] = await Promise.all([getPages(), getCategories(), getSettings()]);
   const links = (pages.data ?? []).filter((p) => p.showInFooter).map((p) => ({ label: p.title, href: `/${p.slug}` }));
   const sportLinks = (categories.data ?? []).map((c) => ({ label: c.name, href: `/sport/${c.slug}` }));
-  const brand = settings ? `${settings.logoTextMain}${settings.logoTextAccent}` : "Methstreams";
 
   return (
     <footer className="border-t-4 border-pixel-ink bg-night-950">
@@ -86,7 +86,7 @@ export async function Footer() {
         {/* Bottom */}
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-xs text-muted">
-            &copy; {currentYear} {brand}. All rights reserved. Sports content for educational and informational purposes.
+            &copy; {currentYear} {SITE_NAME}. All rights reserved. Sports content for educational and informational purposes.
           </p>
           <div className="flex gap-4">
             <a href="#" aria-label="Twitter" className="text-muted transition hover:text-neon">
