@@ -7,7 +7,9 @@ import { SITE_NAME } from "@/lib/seo";
 export async function Footer() {
   const currentYear = new Date().getFullYear();
   const [pages, categories, { data: settings }] = await Promise.all([getPages(), getCategories(), getSettings()]);
-  const links = (pages.data ?? []).filter((p) => p.showInFooter).map((p) => ({ label: p.title, href: `/${p.slug}` }));
+  const links = (pages.data ?? [])
+    .filter((p) => p.showInFooter && p.slug !== "home") // "home" is the homepage article, not a footer link
+    .map((p) => ({ label: p.title, href: `/${p.slug}` }));
   const sportLinks = (categories.data ?? []).map((c) => ({ label: c.name, href: `/sport/${c.slug}` }));
 
   return (

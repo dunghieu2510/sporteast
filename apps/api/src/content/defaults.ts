@@ -180,9 +180,13 @@ Make following your teams simple, quick and enjoyable on any device.`,
   },
 ].map((p, i) => ({ ...p, sortOrder: i }));
 
-/** Starter content for a brand-new site: the same templates with "Methstreams" swapped for the given brand. */
+/** Category shells for a brand-new site: slug/name/icon/order only, so matches map to the right
+ *  menu entry — no description/content/SEO text. The admin writes every category's text themselves. */
+const categoryShells = () => defaultCategories.map(({ slug, name, icon, sortOrder }) => ({ slug, name, icon, sortOrder }));
+
+/** Starter content for a brand-new site: empty category shells + the static-page templates with "Methstreams" swapped for the given brand. */
 export function brandDefaults(brand: string) {
-  const swap = <T extends { content: string }>(rows: T[]) =>
-    brand === "Methstreams" ? rows : rows.map((r) => ({ ...r, content: r.content.replace(/Methstreams/g, brand) }));
-  return { categories: swap(defaultCategories), pages: swap(defaultPages) };
+  const pages =
+    brand === "Methstreams" ? defaultPages : defaultPages.map((r) => ({ ...r, content: r.content.replace(/Methstreams/g, brand) }));
+  return { categories: categoryShells(), pages };
 }

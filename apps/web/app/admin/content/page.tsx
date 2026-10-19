@@ -3,8 +3,8 @@ import Link from "next/link";
 const contentPages = [
   {
     title: "Home Page Content",
-    description: "Edit main heading, description, and featured text",
-    href: "/admin/content/home",
+    description: "Edit the homepage heading & article — create or edit the page with slug \"home\"",
+    href: "/admin/content/pages",
     icon: "🏠",
   },
   {

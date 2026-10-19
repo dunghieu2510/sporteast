@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
   for (const p of pages.data ?? []) {
+    if (p.slug === "home") continue; // same content as "/" — already listed above, don't duplicate
     entries.push({
       url: `${SITE_URL}/${p.slug}`,
       lastModified: p.updatedAt ? new Date(p.updatedAt) : now,
