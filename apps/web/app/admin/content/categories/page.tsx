@@ -91,9 +91,13 @@ function Manager() {
 
   useEffect(() => {
     setLoaded(false);
+    setMsg(null);
     load()
       .then(() => setLoaded(true))
-      .catch((e) => setMsg({ ok: false, text: e.message }));
+      .catch((e) => {
+        setMsg({ ok: false, text: e.message });
+        setLoaded(true); // stop showing "Loading…" forever — show the error instead
+      });
   }, [load]);
 
   const isNew = selected === "new";
@@ -145,6 +149,17 @@ function Manager() {
     });
 
   if (!loaded) return <p className="text-muted">Loading…</p>;
+
+  if (items.length === 0 && msg && !msg.ok) {
+    return (
+      <div className="glass space-y-4 p-6 text-center">
+        <p className="text-live">✗ {msg.text}</p>
+        <button onClick={() => load()} className="pixel-btn px-4 py-2 text-xs font-bold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
