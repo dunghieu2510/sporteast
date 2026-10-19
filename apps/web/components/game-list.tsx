@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { effectiveStatus, formatGameClock, type LeagueSummary, type MatchSummary } from "@arena/types";
 import { formatStartsIn, formatStartsInShort } from "@/lib/format";
+import { TeamCrest } from "@/components/team-crest";
 
 /** Re-render every 30s so "x hours from now" stays fresh. */
 function useNow(intervalMs = 30_000) {
@@ -162,6 +163,12 @@ function GameRow({ match, now }: { match: MatchSummary; now: number }) {
     >
       <span className="w-10 shrink-0 font-display text-sm font-bold sm:w-14">{match.league.shortName}</span>
       <span aria-hidden className="h-5 w-1.5 shrink-0" style={{ background: match.league.color }} />
+      {match.homeTeam && match.awayTeam && (
+        <span className="flex shrink-0 items-center gap-1">
+          <TeamCrest team={match.homeTeam} size="sm" />
+          <TeamCrest team={match.awayTeam} size="sm" />
+        </span>
+      )}
       <span className="line-clamp-2 min-w-0 flex-1 text-[15px] text-white/90 group-hover:text-white sm:line-clamp-1">
         {match.title}
       </span>
