@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategory, getLeagues, getMatches } from "@/lib/api";
+import { SITE_NAME } from "@/lib/seo";
 import { GameList } from "@/components/game-list";
 import { MockNotice } from "@/components/mock-notice";
 import { RichText } from "@/components/rich-text";
@@ -19,8 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { type: "website", siteName: "Methstreams", url, title: `${title} · Methstreams`, description },
-    twitter: { card: "summary_large_image", title: `${title} · Methstreams`, description },
+    openGraph: { type: "website", siteName: SITE_NAME, url, title: `${title} · ${SITE_NAME}`, description },
+    twitter: { card: "summary_large_image", title: `${title} · ${SITE_NAME}`, description },
   };
 }
 

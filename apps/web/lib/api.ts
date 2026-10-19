@@ -1,15 +1,18 @@
-import type {
-  CategoryContent,
-  LeagueSummary,
-  MatchDetail,
-  MatchStatus,
-  MatchSummary,
-  PageContent,
-  SiteSettings,
+import {
+  DEFAULT_SITE,
+  type CategoryContent,
+  type LeagueSummary,
+  type MatchDetail,
+  type MatchStatus,
+  type MatchSummary,
+  type PageContent,
+  type SiteSettings,
 } from "@arena/types";
 import { mockLeagues, mockMatchDetail, mockMatches } from "./mock";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+/** Which site's content (categories/pages/settings) this deployed instance serves. Matches are shared, unaffected. */
+export const SITE_KEY = process.env.SITE_KEY ?? DEFAULT_SITE;
 
 /**
  * Gọi API; nếu API/DB chưa chạy thì dùng dữ liệu mẫu để vẫn phát triển giao diện được.
@@ -55,27 +58,27 @@ const FALLBACK_CATEGORIES: CategoryContent[] = [
 ];
 
 export function getCategories() {
-  return request<CategoryContent[]>("/categories", () => FALLBACK_CATEGORIES);
+  return request<CategoryContent[]>(`/categories?site=${SITE_KEY}`, () => FALLBACK_CATEGORIES);
 }
 
 export function getCategory(slug: string) {
-  return request<CategoryContent>(`/categories/${encodeURIComponent(slug)}`, () =>
+  return request<CategoryContent>(`/categories/${encodeURIComponent(slug)}?site=${SITE_KEY}`, () =>
     FALLBACK_CATEGORIES.find((c) => c.slug === slug) ?? null,
   );
 }
 
 export function getPages() {
-  return request<PageContent[]>("/pages", () => []);
+  return request<PageContent[]>(`/pages?site=${SITE_KEY}`, () => []);
 }
 
 const DEFAULT_SETTINGS: SiteSettings = { logoTextMain: "SPORT", logoTextAccent: "EAST" };
 
 export function getSettings() {
-  return request<SiteSettings>("/settings", () => DEFAULT_SETTINGS);
+  return request<SiteSettings>(`/settings?site=${SITE_KEY}`, () => DEFAULT_SETTINGS);
 }
 
 export function getPage(slug: string) {
-  return request<PageContent>(`/pages/${encodeURIComponent(slug)}`, () => null);
+  return request<PageContent>(`/pages/${encodeURIComponent(slug)}?site=${SITE_KEY}`, () => null);
 }
 
 export function getMatch(slug: string) {

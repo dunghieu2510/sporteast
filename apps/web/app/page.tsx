@@ -5,8 +5,7 @@ import { HomeContent } from "@/components/home-content";
 import { MockNotice } from "@/components/mock-notice";
 import { SITE_NAME } from "@/lib/seo";
 
-const HOME_DESC =
-  "Today's NFL, NBA, NHL, MLB, MLS, WNBA and college football schedules with start times in US Eastern and live scores on Methstreams — a free streameast alternative.";
+const HOME_DESC = `Today's NFL, NBA, NHL, MLB, MLS, WNBA and college football schedules with start times in US Eastern and live scores on ${SITE_NAME} — a free streameast alternative.`;
 
 export const metadata: Metadata = {
   title: "Live Sports Schedules, Scores & Streams",

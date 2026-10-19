@@ -1,9 +1,10 @@
 import { ImageResponse } from "next/og";
 import { getSettings } from "@/lib/api";
+import { SITE_NAME } from "@/lib/seo";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Methstreams — Live Sports Schedules & Scores";
+export const alt = `${SITE_NAME} — Live Sports Schedules & Scores`;
 
 export default async function Image() {
   const { data: s } = await getSettings();

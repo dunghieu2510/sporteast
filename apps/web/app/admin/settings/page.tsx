@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { SiteSettings } from "@arena/types";
 import { adminFetch } from "@/lib/admin-api";
-import { AdminGate, Field, inputCls } from "@/components/admin-ui";
+import { AdminGate, Field, inputCls, useSite } from "@/components/admin-ui";
 import { LogoMark } from "@/components/logo";
 
 export default function AdminSettings() {
@@ -26,6 +26,7 @@ export default function AdminSettings() {
 }
 
 function LogoForm() {
+  const { site } = useSite();
   const [main, setMain] = useState("");
   const [accent, setAccent] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -33,20 +34,21 @@ function LogoForm() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    adminFetch<SiteSettings>("/settings")
+    setLoaded(false);
+    adminFetch<SiteSettings>(`/settings?site=${site}`)
       .then((s) => {
         setMain(s.logoTextMain);
         setAccent(s.logoTextAccent);
         setLoaded(true);
       })
       .catch((e) => setMsg({ ok: false, text: e.message }));
-  }, []);
+  }, [site]);
 
   const save = async () => {
     setBusy(true);
     setMsg(null);
     try {
-      await adminFetch("/settings", { method: "PUT", body: JSON.stringify({ logoTextMain: main, logoTextAccent: accent }) });
+      await adminFetch(`/settings?site=${site}`, { method: "PUT", body: JSON.stringify({ logoTextMain: main, logoTextAccent: accent }) });
       setMsg({ ok: true, text: "Saved. Reload the site to see the new logo." });
     } catch (e) {
       setMsg({ ok: false, text: (e as Error).message });

@@ -1,3 +1,5 @@
+import { SITE_NAME } from "@/lib/seo";
+
 /** Pixel sunrise ("east") mark: 16x16 grid, "#" = ink pixel. Keep in sync with app/icon.svg. */
 export const LOGO_PIXELS = [
   ".......##.......",
@@ -26,7 +28,7 @@ export function LogoMark({ size = 32 }: { size?: number }) {
       viewBox="0 0 16 16"
       shapeRendering="crispEdges"
       role="img"
-      aria-label="Methstreams"
+      aria-label={SITE_NAME}
       className="shrink-0 bg-neon"
       style={{ boxShadow: "inset 2px 2px 0 0 rgb(255 255 255 / 0.5), inset -2px -2px 0 0 rgb(0 0 0 / 0.25), 0 0 0 2px #141414" }}
     >

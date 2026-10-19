@@ -1,7 +1,8 @@
-import { GAME_WINDOW_MS, type MatchDetail, type MatchSummary } from "@arena/types";
+import { GAME_WINDOW_MS, SITES, type MatchDetail, type MatchSummary } from "@arena/types";
+import { SITE_KEY } from "./api";
 import { formatKickoff } from "./format";
 
-export const SITE_NAME = "Methstreams";
+export const SITE_NAME = SITES.find((s) => s.key === SITE_KEY)?.name ?? "Methstreams";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 type SeoMatch = Pick<MatchSummary, "title" | "league" | "startTime">;

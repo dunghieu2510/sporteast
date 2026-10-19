@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Pixelify_Sans, Silkscreen } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
-import { jsonLdString, siteJsonLd } from "@/lib/seo";
+import { SITE_NAME, jsonLdString, siteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
 const pixelify = Pixelify_Sans({ subsets: ["latin"], variable: "--font-pixelify" });
@@ -10,7 +10,7 @@ const silkscreen = Silkscreen({ subsets: ["latin"], weight: ["400", "700"], vari
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "Methstreams · Live Sports", template: "%s · Methstreams" },
+  title: { default: `${SITE_NAME} · Live Sports`, template: `%s · ${SITE_NAME}` },
   description: "NBA, NFL, NHL and MMA schedules, live scores and community livestreams.",
 };
 

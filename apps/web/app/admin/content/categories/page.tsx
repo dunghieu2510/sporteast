@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import type { CategoryContent } from "@arena/types";
+import { SITES, type CategoryContent } from "@arena/types";
 import { adminFetch } from "@/lib/admin-api";
-import { AdminGate, Check, Field, inputCls } from "@/components/admin-ui";
+import { AdminGate, Check, Field, inputCls, useSite } from "@/components/admin-ui";
 import { RichTextEditor } from "@/components/rich-text-editor";
 
 type Form = {
@@ -68,24 +68,32 @@ export default function AdminCategories() {
 }
 
 function Manager() {
+  const { site } = useSite();
   const [items, setItems] = useState<CategoryContent[]>([]);
   const [selected, setSelected] = useState<string | "new">("new");
   const [form, setForm] = useState<Form>(emptyForm);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  const load = useCallback(async (select?: string) => {
-    const list = await adminFetch<CategoryContent[]>("/categories");
-    setItems(list);
-    const target = select ?? list[0]?.slug ?? "new";
-    const found = list.find((c) => c.slug === target);
-    setSelected(found ? found.slug : "new");
-    setForm(found ? toForm(found) : emptyForm);
-  }, []);
+  const load = useCallback(
+    async (select?: string) => {
+      const list = await adminFetch<CategoryContent[]>(`/categories?site=${site}`);
+      setItems(list);
+      const target = select ?? list[0]?.slug ?? "new";
+      const found = list.find((c) => c.slug === target);
+      setSelected(found ? found.slug : "new");
+      setForm(found ? toForm(found) : emptyForm);
+    },
+    [site],
+  );
 
   useEffect(() => {
-    load().catch((e) => setMsg({ ok: false, text: e.message }));
+    setLoaded(false);
+    load()
+      .then(() => setLoaded(true))
+      .catch((e) => setMsg({ ok: false, text: e.message }));
   }, [load]);
 
   const isNew = selected === "new";
@@ -110,12 +118,20 @@ function Manager() {
     }
   };
 
+  const seed = () =>
+    run(async () => {
+      const brand = SITES.find((s) => s.key === site)?.name ?? site;
+      await adminFetch(`/sites/${site}/seed`, { method: "POST", body: JSON.stringify({ brand }) });
+      await load();
+      setMsg({ ok: true, text: "Starter content created — edit it below." });
+    });
+
   const save = () =>
     run(async () => {
       const { slug, ...rest } = form;
       const body = JSON.stringify(rest);
-      if (isNew) await adminFetch("/categories", { method: "POST", body: JSON.stringify({ slug, ...rest }) });
-      else await adminFetch(`/categories/${encodeURIComponent(selected)}`, { method: "PUT", body });
+      if (isNew) await adminFetch(`/categories?site=${site}`, { method: "POST", body: JSON.stringify({ slug, ...rest }) });
+      else await adminFetch(`/categories/${encodeURIComponent(selected)}?site=${site}`, { method: "PUT", body });
       await load(isNew ? slug : selected);
       setMsg({ ok: true, text: isNew ? "Category created." : "Saved." });
     });
@@ -123,10 +139,24 @@ function Manager() {
   const remove = () =>
     run(async () => {
       setConfirmDelete(false);
-      await adminFetch(`/categories/${encodeURIComponent(selected)}`, { method: "DELETE" });
+      await adminFetch(`/categories/${encodeURIComponent(selected)}?site=${site}`, { method: "DELETE" });
       await load();
       setMsg({ ok: true, text: "Category deleted." });
     });
+
+  if (!loaded) return <p className="text-muted">Loading…</p>;
+
+  if (items.length === 0) {
+    return (
+      <div className="glass space-y-4 p-6 text-center">
+        <p className="text-white/80">This site has no categories yet.</p>
+        <button onClick={seed} disabled={busy} className="bg-neon px-6 py-2.5 font-bold text-night-950 hover:brightness-110 disabled:opacity-50">
+          Seed starter content
+        </button>
+        {msg && <p className={`text-sm ${msg.ok ? "text-green-400" : "text-live"}`}>{msg.ok ? "✓ " : "✗ "}{msg.text}</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[250px_1fr]">

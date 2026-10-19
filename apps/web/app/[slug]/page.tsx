@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPage } from "@/lib/api";
+import { SITE_NAME } from "@/lib/seo";
 import { RichText } from "@/components/rich-text";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -16,8 +17,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { type: "website", siteName: "Methstreams", url, title: `${title} · Methstreams`, description, images: ["/opengraph-image"] },
-    twitter: { card: "summary_large_image", title: `${title} · Methstreams`, description, images: ["/opengraph-image"] },
+    openGraph: { type: "website", siteName: SITE_NAME, url, title: `${title} · ${SITE_NAME}`, description, images: ["/opengraph-image"] },
+    twitter: { card: "summary_large_image", title: `${title} · ${SITE_NAME}`, description, images: ["/opengraph-image"] },
   };
 }
 

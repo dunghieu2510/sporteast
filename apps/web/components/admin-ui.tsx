@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { DEFAULT_SITE, SITES, isValidSite } from "@arena/types";
 import { AdminApiError, type AdminUser, getMe, login, logout } from "@/lib/admin-api";
 
 export const inputCls = "w-full bg-night-800 px-4 py-2 text-white placeholder:text-muted";
@@ -28,10 +29,40 @@ export function Check({ label, checked, onChange }: { label: string; checked: bo
 const AdminUserContext = createContext<AdminUser | null>(null);
 export const useAdminUser = () => useContext(AdminUserContext);
 
+const SITE_STORAGE_KEY = "admin-site";
+const SiteContext = createContext<{ site: string; setSite: (s: string) => void }>({
+  site: DEFAULT_SITE,
+  setSite: () => {},
+});
+/** The site selected in the admin header; every content/settings call should append `?site=${site}`. */
+export const useSite = () => useContext(SiteContext);
+
+function useSiteState() {
+  const [site, setSiteState] = useState(DEFAULT_SITE);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SITE_STORAGE_KEY);
+      if (saved && isValidSite(saved)) setSiteState(saved);
+    } catch {
+      /* ignore (private mode, blocked storage) */
+    }
+  }, []);
+  const setSite = (s: string) => {
+    setSiteState(s);
+    try {
+      localStorage.setItem(SITE_STORAGE_KEY, s);
+    } catch {
+      /* ignore */
+    }
+  };
+  return { site, setSite };
+}
+
 /** Gates every admin page behind the session: shows a login form until authenticated. */
 export function AdminGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<"checking" | "login" | "ok">("checking");
   const [user, setUser] = useState<AdminUser | null>(null);
+  const siteState = useSiteState();
 
   useEffect(() => {
     getMe()
@@ -55,24 +86,40 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   return (
     <AdminUserContext.Provider value={user}>
-      <div className="mb-6 flex flex-wrap items-center justify-end gap-4 text-sm">
-        <span className="text-muted">
-          Signed in as <span className="font-semibold text-white">{user?.username}</span>
-        </span>
-        <Link href="/admin/security" className="text-neon hover:text-white">
-          Security
-        </Link>
-        <button
-          type="button"
-          onClick={() => {
-            logout().finally(() => setState("login"));
-          }}
-          className="pixel-btn px-3 py-1 font-semibold text-white"
-        >
-          Sign out
-        </button>
-      </div>
-      {children}
+      <SiteContext.Provider value={siteState}>
+        <div className="mb-6 flex flex-wrap items-center justify-end gap-4 text-sm">
+          <label className="flex items-center gap-2 text-muted">
+            Site
+            <select
+              value={siteState.site}
+              onChange={(e) => siteState.setSite(e.target.value)}
+              className="bg-night-800 px-2 py-1 text-white"
+            >
+              {SITES.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className="text-muted">
+            Signed in as <span className="font-semibold text-white">{user?.username}</span>
+          </span>
+          <Link href="/admin/security" className="text-neon hover:text-white">
+            Security
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              logout().finally(() => setState("login"));
+            }}
+            className="pixel-btn px-3 py-1 font-semibold text-white"
+          >
+            Sign out
+          </button>
+        </div>
+        {children}
+      </SiteContext.Provider>
     </AdminUserContext.Provider>
   );
 }

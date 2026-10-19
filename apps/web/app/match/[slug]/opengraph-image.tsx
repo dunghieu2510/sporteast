@@ -1,9 +1,10 @@
 import { ImageResponse } from "next/og";
 import { getMatch, getSettings } from "@/lib/api";
+import { SITE_NAME } from "@/lib/seo";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Match live stream on Methstreams";
+export const alt = `Match live stream on ${SITE_NAME}`;
 
 type Props = { params: Promise<{ slug: string }> };
 

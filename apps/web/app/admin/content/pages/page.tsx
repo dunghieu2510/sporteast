@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { PageContent } from "@arena/types";
 import { adminFetch } from "@/lib/admin-api";
-import { AdminGate, Check, Field, inputCls } from "@/components/admin-ui";
+import { AdminGate, Check, Field, inputCls, useSite } from "@/components/admin-ui";
 import { RichTextEditor } from "@/components/rich-text-editor";
 
 type Form = {
@@ -59,24 +59,32 @@ export default function AdminPages() {
 }
 
 function Manager() {
+  const { site } = useSite();
   const [items, setItems] = useState<PageContent[]>([]);
   const [selected, setSelected] = useState<string | "new">("new");
   const [form, setForm] = useState<Form>(emptyForm);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  const load = useCallback(async (select?: string) => {
-    const list = await adminFetch<PageContent[]>("/pages");
-    setItems(list);
-    const target = select ?? list[0]?.slug ?? "new";
-    const found = list.find((p) => p.slug === target);
-    setSelected(found ? found.slug : "new");
-    setForm(found ? toForm(found) : emptyForm);
-  }, []);
+  const load = useCallback(
+    async (select?: string) => {
+      const list = await adminFetch<PageContent[]>(`/pages?site=${site}`);
+      setItems(list);
+      const target = select ?? list[0]?.slug ?? "new";
+      const found = list.find((p) => p.slug === target);
+      setSelected(found ? found.slug : "new");
+      setForm(found ? toForm(found) : emptyForm);
+    },
+    [site],
+  );
 
   useEffect(() => {
-    load().catch((e) => setMsg({ ok: false, text: e.message }));
+    setLoaded(false);
+    load()
+      .then(() => setLoaded(true))
+      .catch((e) => setMsg({ ok: false, text: e.message }));
   }, [load]);
 
   const isNew = selected === "new";
@@ -104,8 +112,8 @@ function Manager() {
   const save = () =>
     run(async () => {
       const { slug, ...rest } = form;
-      if (isNew) await adminFetch("/pages", { method: "POST", body: JSON.stringify({ slug, ...rest }) });
-      else await adminFetch(`/pages/${encodeURIComponent(selected)}`, { method: "PUT", body: JSON.stringify(rest) });
+      if (isNew) await adminFetch(`/pages?site=${site}`, { method: "POST", body: JSON.stringify({ slug, ...rest }) });
+      else await adminFetch(`/pages/${encodeURIComponent(selected)}?site=${site}`, { method: "PUT", body: JSON.stringify(rest) });
       await load(isNew ? slug : selected);
       setMsg({ ok: true, text: isNew ? "Page created." : "Saved." });
     });
@@ -113,10 +121,12 @@ function Manager() {
   const remove = () =>
     run(async () => {
       setConfirmDelete(false);
-      await adminFetch(`/pages/${encodeURIComponent(selected)}`, { method: "DELETE" });
+      await adminFetch(`/pages/${encodeURIComponent(selected)}?site=${site}`, { method: "DELETE" });
       await load();
       setMsg({ ok: true, text: "Page deleted." });
     });
+
+  if (!loaded) return <p className="text-muted">Loading…</p>;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
@@ -127,6 +137,15 @@ function Manager() {
             + Add
           </button>
         </div>
+        {items.length === 0 && (
+          <p className="mb-3 text-xs text-muted">
+            No pages yet.{" "}
+            <Link href="/admin/content/categories" className="text-neon hover:text-white">
+              Seed starter content
+            </Link>{" "}
+            or add one above.
+          </p>
+        )}
         <div className="flex flex-col gap-3">
           {items.map((p) => (
             <button

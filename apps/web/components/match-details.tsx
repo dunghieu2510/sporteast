@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { LastFiveGame, MatchDetail, TeamSummary } from "@arena/types";
 import { formatKickoff } from "@/lib/format";
+import { SITE_NAME } from "@/lib/seo";
 import { TeamCrest } from "@/components/team-crest";
 
 const dateFmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
@@ -87,7 +88,7 @@ export function MatchPreview({ match }: { match: MatchDetail }) {
   paragraphs.push(
     `${away.name} ${verb} ${home.name} in ${league.name} action on ${day} at ${time}` +
       `${venue ? `, at ${venue}${place ? ` in ${place}` : ""}` : ""}. ` +
-      `Follow this page for ${match.title} live streams, the start time and full game information on Methstreams, a free streameast alternative.`,
+      `Follow this page for ${match.title} live streams, the start time and full game information on ${SITE_NAME}, a free streameast alternative.`,
   );
 
   if (match.status === "FINISHED" && match.homeScore + match.awayScore > 0) {
