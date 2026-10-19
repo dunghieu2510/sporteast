@@ -1,7 +1,8 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnApplicationBootstrap } from "@nestjs/common";
+import { DEFAULT_SITE, isValidSite } from "@arena/types";
 import { PrismaService } from "../prisma/prisma.service";
 import { IndexNowService } from "../indexnow/indexnow.service";
-import { defaultCategories, defaultPages } from "./defaults";
+import { brandDefaults, defaultCategories, defaultPages } from "./defaults";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 /** Top-level routes that already exist in the web app. */
@@ -39,6 +40,15 @@ function int(body: Body, key: string) {
   }
   return v;
 }
+
+function siteOf(site: string | undefined): string {
+  if (site === undefined) return DEFAULT_SITE;
+  if (!isValidSite(site)) throw new BadRequestException(`Unknown site "${site}"`);
+  return site;
+}
+
+/** The existing production row predates multi-site support and keeps id "default"; new sites use their own key. */
+const settingsId = (site: string) => (site === DEFAULT_SITE ? "default" : site);
 
 function slugOf(body: Body, reserved?: Set<string>) {
   const slug = text(body, "slug", 64, { required: true }) as string;
@@ -105,64 +115,70 @@ export class ContentService implements OnApplicationBootstrap {
 
   // ───── Site settings (singleton) ─────
 
-  getSettings() {
-    return this.prisma.siteSettings.upsert({ where: { id: "default" }, update: {}, create: { id: "default" } });
+  getSettings(site?: string) {
+    const id = settingsId(siteOf(site));
+    return this.prisma.siteSettings.upsert({ where: { id }, update: {}, create: { id } });
   }
 
-  async updateSettings(body: Body) {
+  async updateSettings(body: Body, site?: string) {
+    const id = settingsId(siteOf(site));
     const main = typeof body.logoTextMain === "string" ? body.logoTextMain.trim() : "";
     if (!main || main.length > 24) throw new BadRequestException(`"logoTextMain" must be 1–24 characters`);
     const accent = typeof body.logoTextAccent === "string" ? body.logoTextAccent.trim() : "";
     if (accent.length > 24) throw new BadRequestException(`"logoTextAccent" must be at most 24 characters`);
     return this.prisma.siteSettings.upsert({
-      where: { id: "default" },
+      where: { id },
       update: { logoTextMain: main, logoTextAccent: accent },
-      create: { id: "default", logoTextMain: main, logoTextAccent: accent },
+      create: { id, logoTextMain: main, logoTextAccent: accent },
     });
   }
 
   // ───── Categories ─────
 
-  listCategories(includeInactive = false) {
+  listCategories(includeInactive = false, site?: string) {
     return this.prisma.category.findMany({
-      where: includeInactive ? {} : { active: true },
+      where: { site: siteOf(site), ...(includeInactive ? {} : { active: true }) },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
   }
 
-  async getCategory(slug: string, includeInactive = false) {
-    const row = await this.prisma.category.findUnique({ where: { slug } });
+  async getCategory(slug: string, includeInactive = false, site?: string) {
+    const row = await this.prisma.category.findUnique({ where: { site_slug: { site: siteOf(site), slug } } });
     if (!row || (!row.active && !includeInactive)) throw new NotFoundException(`Category "${slug}" not found`);
     return row;
   }
 
-  async createCategory(body: Body) {
+  async createCategory(body: Body, site?: string) {
+    const s = siteOf(site);
     const slug = slugOf(body);
-    if (await this.prisma.category.findUnique({ where: { slug } })) throw new ConflictException(`Category "${slug}" already exists`);
-    const row = await this.prisma.category.create({ data: { slug, ...(categoryData(body, false) as { name: string }) } });
+    if (await this.prisma.category.findUnique({ where: { site_slug: { site: s, slug } } })) {
+      throw new ConflictException(`Category "${slug}" already exists`);
+    }
+    return this.prisma.category.create({ data: { site: s, slug, ...(categoryData(body, false) as { name: string }) } });
+  }
+
+  async updateCategory(slug: string, body: Body, site?: string) {
+    const s = siteOf(site);
+    await this.getCategory(slug, true, s);
+    const row = await this.prisma.category.update({ where: { site_slug: { site: s, slug } }, data: categoryData(body, true) });
     this.indexNow.submit([`/sport/${slug}`, "/"]);
     return row;
   }
 
-  async updateCategory(slug: string, body: Body) {
-    await this.getCategory(slug, true);
-    const row = await this.prisma.category.update({ where: { slug }, data: categoryData(body, true) });
-    this.indexNow.submit([`/sport/${slug}`, "/"]);
-    return row;
-  }
-
-  async removeCategory(slug: string) {
-    await this.getCategory(slug, true);
-    await this.prisma.category.delete({ where: { slug } });
+  async removeCategory(slug: string, site?: string) {
+    const s = siteOf(site);
+    await this.getCategory(slug, true, s);
+    await this.prisma.category.delete({ where: { site_slug: { site: s, slug } } });
     this.indexNow.submit([`/sport/${slug}`, "/"]);
     return { deleted: slug };
   }
 
   // ───── Pages ─────
 
-  listPages(opts: { includeUnpublished?: boolean; footerOnly?: boolean } = {}) {
+  listPages(opts: { includeUnpublished?: boolean; footerOnly?: boolean } = {}, site?: string) {
     return this.prisma.page.findMany({
       where: {
+        site: siteOf(site),
         ...(opts.includeUnpublished ? {} : { published: true }),
         ...(opts.footerOnly ? { showInFooter: true } : {}),
       },
@@ -170,31 +186,48 @@ export class ContentService implements OnApplicationBootstrap {
     });
   }
 
-  async getPage(slug: string, includeUnpublished = false) {
-    const row = await this.prisma.page.findUnique({ where: { slug } });
+  async getPage(slug: string, includeUnpublished = false, site?: string) {
+    const row = await this.prisma.page.findUnique({ where: { site_slug: { site: siteOf(site), slug } } });
     if (!row || (!row.published && !includeUnpublished)) throw new NotFoundException(`Page "${slug}" not found`);
     return row;
   }
 
-  async createPage(body: Body) {
+  async createPage(body: Body, site?: string) {
+    const s = siteOf(site);
     const slug = slugOf(body, RESERVED_PAGE_SLUGS);
-    if (await this.prisma.page.findUnique({ where: { slug } })) throw new ConflictException(`Page "${slug}" already exists`);
-    const row = await this.prisma.page.create({ data: { slug, ...(pageData(body, false) as { title: string; content: string }) } });
+    if (await this.prisma.page.findUnique({ where: { site_slug: { site: s, slug } } })) {
+      throw new ConflictException(`Page "${slug}" already exists`);
+    }
+    const row = await this.prisma.page.create({ data: { site: s, slug, ...(pageData(body, false) as { title: string; content: string }) } });
     this.indexNow.submit([`/${slug}`, "/"]);
     return row;
   }
 
-  async updatePage(slug: string, body: Body) {
-    await this.getPage(slug, true);
-    const row = await this.prisma.page.update({ where: { slug }, data: pageData(body, true) });
+  async updatePage(slug: string, body: Body, site?: string) {
+    const s = siteOf(site);
+    await this.getPage(slug, true, s);
+    const row = await this.prisma.page.update({ where: { site_slug: { site: s, slug } }, data: pageData(body, true) });
     this.indexNow.submit([`/${slug}`, "/"]);
     return row;
   }
 
-  async removePage(slug: string) {
-    await this.getPage(slug, true);
-    await this.prisma.page.delete({ where: { slug } });
+  async removePage(slug: string, site?: string) {
+    const s = siteOf(site);
+    await this.getPage(slug, true, s);
+    await this.prisma.page.delete({ where: { site_slug: { site: s, slug } } });
     this.indexNow.submit([`/${slug}`, "/"]);
     return { deleted: slug };
+  }
+
+  /** Bootstraps a new site with the starter categories/pages (brand name substituted), if it has none yet. */
+  async seedSite(site: string, brand: string) {
+    const s = siteOf(site);
+    if ((await this.prisma.category.count({ where: { site: s } })) > 0) {
+      throw new ConflictException(`Site "${s}" already has content`);
+    }
+    const { categories, pages } = brandDefaults(brand.trim() || s);
+    await this.prisma.category.createMany({ data: categories.map((c) => ({ ...c, site: s })) });
+    await this.prisma.page.createMany({ data: pages.map((p) => ({ ...p, site: s })) });
+    return { seeded: s, categories: categories.length, pages: pages.length };
   }
 }

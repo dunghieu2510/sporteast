@@ -179,3 +179,10 @@ Methstreams is a fan-first home for live sports schedules and scores. We bring t
 Make following your teams simple, quick and enjoyable on any device.`,
   },
 ].map((p, i) => ({ ...p, sortOrder: i }));
+
+/** Starter content for a brand-new site: the same templates with "Methstreams" swapped for the given brand. */
+export function brandDefaults(brand: string) {
+  const swap = <T extends { content: string }>(rows: T[]) =>
+    brand === "Methstreams" ? rows : rows.map((r) => ({ ...r, content: r.content.replace(/Methstreams/g, brand) }));
+  return { categories: swap(defaultCategories), pages: swap(defaultPages) };
+}

@@ -80,8 +80,10 @@ model SiteSettings {
 /// Trang category (/sport/<slug>) và mục trên menu
 model Category {
   id              String   @id @default(cuid())
+  /// Site sở hữu row này — xem SITES trong @arena/types. Mặc định giữ site hiện có.
+  site            String   @default("methstreams")
   /// Khớp với league.slug hoặc sport.slug để lọc trận
-  slug            String   @unique
+  slug            String
   name            String
   icon            String?
   sortOrder       Int      @default(0)
@@ -97,12 +99,16 @@ model Category {
   metaDescription String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@unique([site, slug])
 }
 
 /// Trang tĩnh: Privacy, Terms, DMCA, Contact, About...
 model Page {
   id              String   @id @default(cuid())
-  slug            String   @unique
+  /// Site sở hữu row này — xem SITES trong @arena/types. Mặc định giữ site hiện có.
+  site            String   @default("methstreams")
+  slug            String
   title           String
   content         String   @db.LongText
   metaTitle       String?
@@ -112,6 +118,8 @@ model Page {
   sortOrder       Int      @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@unique([site, slug])
 }
 
 // ───────────── Người dùng ─────────────

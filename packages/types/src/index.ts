@@ -2,6 +2,27 @@
 
 export * from "./fixtures";
 
+// ───────── Multi-site registry ─────────
+// Matches/leagues/teams/embeds are shared across every site; only content
+// (categories, pages, site settings) is per-site. Adding a 4th site is one
+// entry here plus a web deploy — no schema or API change.
+
+export interface SiteInfo {
+  key: string;
+  name: string;
+  url: string;
+}
+
+export const SITES: SiteInfo[] = [
+  { key: "methstreams", name: "Methstreams", url: "https://methstreamsv2.com" },
+  { key: "crackstreamsv2", name: "Crackstreamsv2", url: "https://crackstreamsv2.com" },
+  { key: "crackstreameast", name: "Crackstreameast", url: "https://crackstreameast.com" },
+];
+
+export const DEFAULT_SITE = SITES[0].key;
+
+export const isValidSite = (site: string): boolean => SITES.some((s) => s.key === site);
+
 export type MatchStatus = "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED";
 
 export type MatchEventType = "SCORE" | "PENALTY" | "PERIOD_START" | "PERIOD_END" | "FINISH" | "OTHER";
