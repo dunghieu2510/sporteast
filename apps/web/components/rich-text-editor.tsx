@@ -7,14 +7,14 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 import { legacyToHtml, looksLikeHtml } from "@/components/rich-text";
 
 type Props = { value: string; onChange: (v: string) => void; rows?: number };
 
 const ALLOWED_TAGS = ["p", "h2", "h3", "strong", "em", "u", "s", "a", "ul", "ol", "li", "blockquote", "img", "br"];
-const ALLOWED_ATTR = ["href", "src", "alt", "style"];
-const sanitize = (html: string) => DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR });
+const sanitize = (html: string) =>
+  sanitizeHtml(html, { allowedTags: ALLOWED_TAGS, allowedAttributes: { a: ["href"], img: ["src", "alt"], "*": ["style"] } });
 
 const proseCls =
   "min-h-40 bg-night-900 px-4 py-3 text-[15px] leading-relaxed text-white/90 focus:outline-none " +
