@@ -39,6 +39,15 @@ const LEAGUES: LeagueConfig[] = [
   { path: "hockey/nhl", slug: "nhl", name: "NHL", sport: { slug: "ice-hockey", name: "Ice Hockey" }, icon: "🏒", color: "#22d3ee" },
 ];
 
+/**
+ * Leagues whose full roster we crawl up front (one ESPN request per league, not per team) to
+ * backfill every team's logo immediately, even teams with no game yet. Kept to these 4 — all
+ * have a small, fixed roster (~30 teams) and ESPN's /teams endpoint returns it in a single call.
+ * NCAAF (762 teams across every division, ungated by ESPN here), MLS and WNBA are left out on
+ * purpose; their teams still get a logo the normal way, the first time they appear in a match.
+ */
+const LOGO_CRAWL_SLUGS = new Set(["nfl", "nba", "nhl", "mlb"]);
+
 /** YYYY-MM-DD theo giờ miền Đông Mỹ (cách ESPN chia ngày). */
 const etDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
 
@@ -63,6 +72,7 @@ export class EspnSyncService implements OnApplicationBootstrap {
   onApplicationBootstrap() {
     void this.updateStatusByTime();
     void this.sync();
+    void this.syncTeamLogos();
   }
 
   /** Mọi trận: đến giờ bắt đầu → LIVE; quá 4 giờ kể từ giờ bắt đầu → FINISHED. */
@@ -302,16 +312,28 @@ export class EspnSyncService implements OnApplicationBootstrap {
     };
   }
 
+  /** Accepts both the scoreboard's team shape (`t.logo`) and the /teams roster shape (normalized to the same `logo` field by fetchTeamRoster). */
   private async resolveTeam(league: { id: string; slug: string }, t: any) {
     const externalId = `${ID_PREFIX}${league.slug}:${t.id}`;
+    const logo: string | null = t.logo ?? null;
+
     const byExternal = await this.prisma.team.findUnique({ where: { externalId } });
-    if (byExternal) return byExternal;
+    if (byExternal) {
+      // Self-heal: a team created before the logo crawl existed still gets one next time it's touched.
+      if (!byExternal.logoUrl && logo) return this.prisma.team.update({ where: { id: byExternal.id }, data: { logoUrl: logo } });
+      return byExternal;
+    }
 
     const name: string = t.displayName ?? t.name;
     const byName = await this.prisma.team.findFirst({
       where: { leagueId: league.id, name, externalId: null },
     });
-    if (byName) return this.prisma.team.update({ where: { id: byName.id }, data: { externalId } });
+    if (byName) {
+      return this.prisma.team.update({
+        where: { id: byName.id },
+        data: { externalId, ...(!byName.logoUrl && logo && { logoUrl: logo }) },
+      });
+    }
 
     const base = slugify(name);
     const slug = (await this.prisma.team.findUnique({ where: { slug: base } })) ? `${base}-${league.slug}` : base;
@@ -322,10 +344,52 @@ export class EspnSyncService implements OnApplicationBootstrap {
         shortName: t.abbreviation ?? name.slice(0, 3).toUpperCase(),
         slug,
         externalId,
+        logoUrl: logo,
         ...(t.color && { primaryColor: `#${t.color}` }),
         ...(t.alternateColor && { secondaryColor: `#${t.alternateColor}` }),
       },
     });
+  }
+
+  /**
+   * One-off (startup) + on-demand crawl of each LOGO_CRAWL_SLUGS league's full roster.
+   * Exactly one ESPN request per league (4 total), independent of team count.
+   */
+  async syncTeamLogos(): Promise<{ league: string; teams: number }[]> {
+    const targets = LEAGUES.filter((l) => LOGO_CRAWL_SLUGS.has(l.slug));
+    const results: { league: string; teams: number }[] = [];
+    for (const league of targets) {
+      try {
+        const dbLeague = await this.findOrCreateLeague(league);
+        const roster = await this.fetchTeamRoster(league);
+        for (const t of roster) await this.resolveTeam(dbLeague, t);
+        results.push({ league: league.slug, teams: roster.length });
+        this.logger.log(`Team logos: ${league.name} — ${roster.length} teams`);
+      } catch (err: any) {
+        this.logger.warn(`Team logo crawl failed for ${league.name}: ${err?.message ?? err}`);
+      }
+      // Polite gap between requests — 4 total either way, but no reason to fire them back to back.
+      await new Promise((r) => setTimeout(r, 300));
+    }
+    return results;
+  }
+
+  private async fetchTeamRoster(league: LeagueConfig): Promise<any[]> {
+    const res = await fetch(`${ESPN_API}/${league.path}/teams?limit=200`, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json: any = await res.json();
+    const entries: any[] = json.sports?.[0]?.leagues?.[0]?.teams ?? [];
+    return entries.map(({ team: t }) => ({
+      id: t.id,
+      displayName: t.displayName,
+      abbreviation: t.abbreviation,
+      color: t.color,
+      alternateColor: t.alternateColor,
+      logo: t.logos?.find((l: any) => l.rel?.includes("default"))?.href ?? t.logos?.[0]?.href ?? null,
+    }));
   }
 
   private async findOrCreateLeague(cfg: LeagueConfig) {
