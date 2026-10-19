@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
-/* Design tokens — "Retro Pixel Gray" */
+/* Design tokens — "Retro Pixel Gray" (default: methstreams). Each site overrides these
+   below via [data-site="..."] on <html>, set from SITE_KEY in app/layout.tsx — same
+   components, same pixel-UI mechanics, different palette. Keep in sync with lib/theme.ts
+   (used by the opengraph-image routes, which can't read CSS custom properties). */
 @theme {
+  --color-page-bg: #5a5a5a;
   --color-night-950: #222222;
   --color-night-900: #2e2e2e;
   --color-night-800: #3a3a3a;
@@ -23,12 +27,40 @@
   }
 }
 
+/* "Cyber Blue" — crackstreamsv2 */
+:root[data-site="crackstreamsv2"] {
+  --color-page-bg: #333a4d;
+  --color-night-950: #141a28;
+  --color-night-900: #1b2336;
+  --color-night-800: #232d47;
+  --color-night-700: #2d3a5c;
+  --color-night-600: #3a4a75;
+  --color-neon: #39e0ff;
+  --color-live: #ff6b35;
+  --color-muted: #a9bedd;
+  --color-pixel-ink: #0a0e18;
+}
+
+/* "Terminal Green" — crackstreameast */
+:root[data-site="crackstreameast"] {
+  --color-page-bg: #35402f;
+  --color-night-950: #0f1a0f;
+  --color-night-900: #17291a;
+  --color-night-800: #1f351f;
+  --color-night-700: #2a452a;
+  --color-night-600: #395c39;
+  --color-neon: #39ff6a;
+  --color-live: #ff3b3b;
+  --color-muted: #9bcf9f;
+  --color-pixel-ink: #050c05;
+}
+
 html {
   color-scheme: dark;
 }
 
 body {
-  background-color: #5a5a5a;
+  background-color: var(--color-page-bg);
   /* Họa tiết caro 2px như dither của máy 8-bit */
   background-image: repeating-conic-gradient(rgb(0 0 0 / 0.06) 0% 25%, transparent 0% 50%);
   background-size: 4px 4px;

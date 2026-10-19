@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { getCategory, getSettings } from "@/lib/api";
 import { SITE_NAME } from "@/lib/seo";
+import { SITE_PALETTE } from "@/lib/theme";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -14,6 +15,7 @@ export default async function Image({ params }: Props) {
   const name = data?.name ?? "Live Sports";
   const main = s?.logoTextMain ?? "SPORT";
   const accent = s?.logoTextAccent ?? "EAST";
+  const p = SITE_PALETTE;
 
   return new ImageResponse(
     (
@@ -25,17 +27,17 @@ export default async function Image({ params }: Props) {
           height: "100%",
           alignItems: "center",
           justifyContent: "center",
-          background: "#222222",
-          backgroundImage: "radial-gradient(circle at 50% 0%, #3a3a3a 0, #222222 65%)",
+          background: p.bg,
+          backgroundImage: `radial-gradient(circle at 50% 0%, ${p.bgGradient} 0, ${p.bg} 65%)`,
           color: "#f2f2f2",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", fontSize: 120, fontWeight: 800, color: "#ffd23f" }}>{name}</div>
+        <div style={{ display: "flex", fontSize: 120, fontWeight: 800, color: p.accent }}>{name}</div>
         <div style={{ display: "flex", fontSize: 44, marginTop: 20 }}>Schedule &amp; Live Scores</div>
-        <div style={{ display: "flex", marginTop: 56, fontSize: 30, fontWeight: 800, color: "#c4c4c4" }}>
+        <div style={{ display: "flex", marginTop: 56, fontSize: 30, fontWeight: 800, color: p.muted }}>
           <span style={{ color: "#f2f2f2" }}>{main}</span>
-          <span style={{ color: "#ffd23f" }}>{accent}</span>
+          <span style={{ color: p.accent }}>{accent}</span>
         </div>
       </div>
     ),
