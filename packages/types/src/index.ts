@@ -15,8 +15,8 @@ export interface SiteInfo {
 
 export const SITES: SiteInfo[] = [
   { key: "methstreams", name: "Methstreams", url: "https://methstreamsv2.com" },
-  { key: "crackstreamsv2", name: "Crackstreamsv2", url: "https://crackstreamsv2.com" },
-  { key: "crackstreameast", name: "Crackstreameast", url: "https://crackstreameast.com" },
+  { key: "crackstreamsv2", name: "Crackstreamsv2", url: "https://crackstreamsv2.net" },
+  { key: "crackstreameast", name: "Crackstreameast", url: "https://crackstreameast.net" },
 ];
 
 export const DEFAULT_SITE = SITES[0].key;
