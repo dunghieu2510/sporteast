@@ -163,15 +163,19 @@ function GameRow({ match, now }: { match: MatchSummary; now: number }) {
     >
       <span className="w-10 shrink-0 font-display text-sm font-bold sm:w-14">{match.league.shortName}</span>
       <span aria-hidden className="h-5 w-1.5 shrink-0" style={{ background: match.league.color }} />
-      {match.homeTeam && match.awayTeam && (
-        <span className="flex shrink-0 items-center gap-1">
+      {match.homeTeam && match.awayTeam ? (
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[15px] text-white/90 group-hover:text-white">
           <TeamCrest team={match.homeTeam} size="sm" />
+          <span className="min-w-0 flex-1 truncate">{match.homeTeam.name}</span>
+          <span className="shrink-0 text-xs text-muted">vs</span>
           <TeamCrest team={match.awayTeam} size="sm" />
+          <span className="min-w-0 flex-1 truncate">{match.awayTeam.name}</span>
+        </span>
+      ) : (
+        <span className="line-clamp-2 min-w-0 flex-1 text-[15px] text-white/90 group-hover:text-white sm:line-clamp-1">
+          {match.title}
         </span>
       )}
-      <span className="line-clamp-2 min-w-0 flex-1 text-[15px] text-white/90 group-hover:text-white sm:line-clamp-1">
-        {match.title}
-      </span>
 
       {live ? (
         <span className="flex shrink-0 items-center gap-2">
