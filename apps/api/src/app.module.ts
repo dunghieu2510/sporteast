@@ -11,6 +11,7 @@ import { RealtimeModule } from "./realtime/realtime.module";
 import { EspnModule } from "./espn/espn.module";
 import { ContentModule } from "./content/content.module";
 import { AuthModule } from "./auth/auth.module";
+import { DiscordModule } from "./discord/discord.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AuthModule } from "./auth/auth.module";
     EspnModule,
     ContentModule,
     AuthModule,
+    DiscordModule,
   ],
 })
 export class AppModule {}
