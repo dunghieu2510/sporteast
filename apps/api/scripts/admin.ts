@@ -2,6 +2,7 @@
  * Admin account CLI. Run from repo root so .env is loaded, e.g.
  *   npx dotenv -e .env -- npx tsx apps/api/scripts/admin.ts create <username> <email> <password>
  *   npx dotenv -e .env -- npx tsx apps/api/scripts/admin.ts reset-2fa <username>
+ *   npx dotenv -e .env -- npx tsx apps/api/scripts/admin.ts reset-password <username> <newPassword>
  *   npx dotenv -e .env -- npx tsx apps/api/scripts/admin.ts unlock <username>
  *   npx dotenv -e .env -- npx tsx apps/api/scripts/admin.ts list
  */
@@ -37,6 +38,19 @@ async function main() {
         data: { totpEnabled: false, totpSecret: null },
       });
       console.log(r.count ? `✅ 2FA disabled for ${a}` : `No admin named "${a}"`);
+      break;
+    }
+    case "reset-password": {
+      const username = (a ?? "").trim().toLowerCase();
+      const password = b ?? "";
+      if (!username || password.length < 10) {
+        throw new Error("Usage: reset-password <username> <newPassword(min 10 chars)>");
+      }
+      const r = await prisma.user.updateMany({
+        where: { username, role: "ADMIN" },
+        data: { passwordHash: await argonHash(password, ARGON), failedLoginAttempts: 0, lockedUntil: null },
+      });
+      console.log(r.count ? `✅ Password reset for ${username}` : `No admin named "${username}"`);
       break;
     }
     case "unlock": {
