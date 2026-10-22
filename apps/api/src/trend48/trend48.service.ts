@@ -6,7 +6,11 @@ import { PrismaService } from "../prisma/prisma.service";
 const TREND48_API = "https://trend48.st/api";
 const TREND48_CATEGORY: Record<string, string> = { nba: "basketball", nhl: "hockey" };
 /** The 3 sources to attach per match: the base watch_url, then 2 pinned alternate streams. */
-const SOURCE_SUFFIXES = ["", "?source=admin&stream=1", "?source=admin&stream=2"];
+const SOURCES = [
+  { title: "Main", suffix: "" },
+  { title: "Link 1", suffix: "?source=admin&stream=1" },
+  { title: "Link 2", suffix: "?source=admin&stream=2" },
+];
 
 interface Trend48Match {
   title: string;
@@ -47,11 +51,11 @@ export class Trend48Service {
         if (!m.awayTeam || !m.homeTeam) continue;
         const base = links.get(`${m.awayTeam.name} vs ${m.homeTeam.name}`);
         if (!base) continue;
-        for (const [i, suffix] of SOURCE_SUFFIXES.entries()) {
+        for (const [i, { title, suffix }] of SOURCES.entries()) {
           const url = `${base}${suffix}`;
           const exists = await this.prisma.matchEmbed.findFirst({ where: { matchId: m.id, url }, select: { id: true } });
           if (exists) continue;
-          await this.prisma.matchEmbed.create({ data: { matchId: m.id, title: `Trend48 #${i + 1}`, url, sortOrder: i } });
+          await this.prisma.matchEmbed.create({ data: { matchId: m.id, title, url, sortOrder: i } });
           added++;
         }
       }
