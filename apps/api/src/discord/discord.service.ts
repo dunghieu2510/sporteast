@@ -11,7 +11,8 @@ const PER_MATCH_LEAGUES = ["nba", "nhl"];
 const LEAGUES = [...GROUPED_LEAGUES, ...PER_MATCH_LEAGUES];
 const WINDOW_MS = 24 * 3_600_000;
 const MAX_EMBEDS_PER_MESSAGE = 10; // Discord's hard limit per message
-const EVENT_DOMAIN = "https://trend48.st";
+const TREND48_API = "https://trend48.st/api";
+const TREND48_CATEGORY: Record<string, string> = { nba: "basketball", nhl: "hockey" };
 
 const CHANNEL_ENV: Record<string, string> = {
   methstreams: "DISCORD_CHANNEL_METHSTREAMS",
@@ -20,22 +21,18 @@ const CHANNEL_ENV: Record<string, string> = {
 };
 
 const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
-// trend48.st dates its events by US game-day (ET), not VN time — an evening US game is already
-// "tomorrow" in VN, so the link's date must follow ET or it lands 1 day late.
-const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }); // "YYYY-MM-DD"
 
-/** domain/event/m-{away-slug}-vs-{home-slug}-{MMDD}, e.g. trend48.st/event/m-phoenix-suns-vs-portland-trail-blazers-1022 */
-const eventLink = (m: MatchSummary): string | null => {
-  if (!m.awayTeam || !m.homeTeam) return null;
-  const mmdd = dayFmt.format(new Date(m.startTime)).slice(5).replace("-", "");
-  return `${EVENT_DOMAIN}/event/m-${m.awayTeam.slug}-vs-${m.homeTeam.slug}-${mmdd}`;
-};
+interface Trend48Match {
+  title: string;
+  category: string;
+  watch_url: string;
+}
 
 /**
  * Posts the day's NBA/NHL/NFL schedule to each site's Discord channel, once a day, via a Discord bot.
  * NFL stays one grouped summary embed linking to the site's own category page. NBA/NHL each get their
- * own embed linking to trend48.st's event page — batched across messages since Discord caps a message
- * at 10 embeds.
+ * own embed, linked to the matching event on trend48.st (its own API, not a guessed URL) — batched
+ * across messages since Discord caps a message at 10 embeds.
  * Config: DISCORD_BOT_TOKEN + one DISCORD_CHANNEL_<SITE> per site; a site with no channel id is skipped.
  */
 @Injectable()
@@ -55,10 +52,11 @@ export class DiscordService {
       return;
     }
     const upcoming = await this.upcomingMatches();
+    const trend48Links = await this.fetchTrend48Links();
     for (const site of SITES) {
       const channelId = process.env[CHANNEL_ENV[site.key]];
       if (!channelId) continue;
-      for (const body of this.buildMessages(site, upcoming)) {
+      for (const body of this.buildMessages(site, upcoming, trend48Links)) {
         await this.post(channelId, body);
       }
     }
@@ -70,13 +68,39 @@ export class DiscordService {
     return all.filter((m) => LEAGUES.includes(m.league.slug) && new Date(m.startTime).getTime() <= now + WINDOW_MS);
   }
 
-  private buildMessages(site: SiteInfo, matches: MatchSummary[]): { embeds: unknown[] }[] {
+  /** title ("Away vs Home") → watch_url, for basketball/hockey events only. */
+  private async fetchTrend48Links(): Promise<Map<string, string>> {
+    try {
+      const res = await fetch(`${TREND48_API}/matches/all-today`, { signal: AbortSignal.timeout(10_000) });
+      if (!res.ok) {
+        this.logger.warn(`trend48.st fetch failed: HTTP ${res.status}`);
+        return new Map();
+      }
+      const events = (await res.json()) as Trend48Match[];
+      const wanted = new Set(Object.values(TREND48_CATEGORY));
+      return new Map(events.filter((e) => wanted.has(e.category)).map((e) => [e.title, e.watch_url]));
+    } catch (err: any) {
+      this.logger.warn(`trend48.st fetch failed: ${err?.message ?? err}`);
+      return new Map();
+    }
+  }
+
+  private buildMessages(site: SiteInfo, matches: MatchSummary[], trend48Links: Map<string, string>): { embeds: unknown[] }[] {
     const grouped = matches.filter((m) => GROUPED_LEAGUES.includes(m.league.slug));
-    const perMatch = matches.filter((m) => PER_MATCH_LEAGUES.includes(m.league.slug) && eventLink(m));
+
+    // shortcut: exact "Away vs Home" title match against trend48's own list; a team-name mismatch
+    // (abbreviation vs full name) silently skips that match's embed rather than guessing a link —
+    // upgrade to fuzzy matching if real misses show up.
+    const perMatch = matches
+      .filter((m) => PER_MATCH_LEAGUES.includes(m.league.slug) && m.awayTeam && m.homeTeam)
+      .map((m) => ({ m, link: trend48Links.get(`${m.awayTeam!.name} vs ${m.homeTeam!.name}`) }))
+      .filter((x): x is { m: MatchSummary; link: string } => Boolean(x.link));
 
     const messages: { embeds: unknown[] }[] = [{ embeds: [this.buildGroupedEmbed(site, grouped)] }];
     for (let i = 0; i < perMatch.length; i += MAX_EMBEDS_PER_MESSAGE) {
-      messages.push({ embeds: perMatch.slice(i, i + MAX_EMBEDS_PER_MESSAGE).map((m) => this.buildMatchEmbed(m)) });
+      messages.push({
+        embeds: perMatch.slice(i, i + MAX_EMBEDS_PER_MESSAGE).map(({ m, link }) => this.buildMatchEmbed(m, link)),
+      });
     }
     return messages;
   }
@@ -105,11 +129,11 @@ export class DiscordService {
     return { title: "📅 Today's Schedule", color: 0x39ff88, fields, timestamp: new Date().toISOString() };
   }
 
-  private buildMatchEmbed(m: MatchSummary) {
+  private buildMatchEmbed(m: MatchSummary, link: string) {
     const { icon, name: leagueName } = m.league;
     return {
       title: `${icon ?? ""} ${m.awayTeam!.name} vs ${m.homeTeam!.name}`.trim(),
-      description: `${leagueName} — ${timeFmt.format(new Date(m.startTime))}\n[Watch](${eventLink(m)})`,
+      description: `${leagueName} — ${timeFmt.format(new Date(m.startTime))}\n[Watch](${link})`,
       color: 0x39ff88,
     };
   }
