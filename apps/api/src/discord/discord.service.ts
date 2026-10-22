@@ -15,7 +15,7 @@ const CHANNEL_ENV: Record<string, string> = {
   crackstreameast: "DISCORD_CHANNEL_CRACKSTREAMEAST",
 };
 
-const timeFmt = new Intl.DateTimeFormat("vi-VN", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 
 /**
  * Posts the day's NBA/NHL/NFL schedule to each site's Discord channel, once a day, via a Discord bot.
@@ -61,18 +61,18 @@ export class DiscordService {
 
     const fields =
       byLeague.size === 0
-        ? [{ name: "Hôm nay", value: "Không có trận NBA/NHL/NFL nào." }]
+        ? [{ name: "Today", value: "No NBA/NHL/NFL games today." }]
         : LEAGUES.filter((slug) => byLeague.has(slug)).map((slug) => {
             const list = byLeague.get(slug)!;
             const { name, icon } = list[0].league;
             const lines = list.map((m) => `${timeFmt.format(new Date(m.startTime))} — ${m.title}`);
             return {
               name: `${icon ?? ""} ${name}`.trim(),
-              value: `${lines.join("\n")}\n[Xem lịch ${name}](${site.url}/sport/${slug})`,
+              value: `${lines.join("\n")}\n[View ${name} Schedule](${site.url}/sport/${slug})`,
             };
           });
 
-    return { embeds: [{ title: "📅 Lịch thi đấu hôm nay", color: 0x39ff88, fields, timestamp: new Date().toISOString() }] };
+    return { embeds: [{ title: "📅 Today's Schedule", color: 0x39ff88, fields, timestamp: new Date().toISOString() }] };
   }
 
   private async post(channelId: string, body: unknown): Promise<void> {
