@@ -4,7 +4,7 @@ import { MatchStatus } from "@arena/db";
 import { PrismaService } from "../prisma/prisma.service";
 
 const TREND48_API = "https://trend48.st/api";
-const TREND48_CATEGORY: Record<string, string> = { nba: "basketball", nhl: "hockey" };
+const TREND48_CATEGORY: Record<string, string> = { "nba-streams": "basketball", nhl: "hockey", nfl: "american-football" };
 /** The 3 sources to attach per match: the base watch_url, then 2 pinned alternate streams. */
 const SOURCES = [
   { title: "Main", suffix: "" },
@@ -19,7 +19,7 @@ interface Trend48Match {
 }
 
 /**
- * Auto-attaches a trend48.st stream embed to each NBA/NHL match, matched by exact
+ * Auto-attaches a trend48.st stream embed to each NBA/NHL/NFL match, matched by exact
  * "Away vs Home" title against trend48's own API (so links are never guessed/stale).
  *
  * shortcut: exact title match only — a team-name mismatch (abbreviation vs full name)
@@ -65,7 +65,7 @@ export class Trend48Service {
     }
   }
 
-  /** title ("Away vs Home") → watch_url, for basketball/hockey events only. */
+  /** title ("Away vs Home") → watch_url, for basketball/hockey/american-football events only. */
   private async fetchLinks(): Promise<Map<string, string>> {
     const res = await fetch(`${TREND48_API}/matches/all-today`, { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
