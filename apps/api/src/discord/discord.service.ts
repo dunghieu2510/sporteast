@@ -20,7 +20,9 @@ const CHANNEL_ENV: Record<string, string> = {
 };
 
 const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
-const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }); // "YYYY-MM-DD"
+// trend48.st dates its events by US game-day (ET), not VN time — an evening US game is already
+// "tomorrow" in VN, so the link's date must follow ET or it lands 1 day late.
+const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }); // "YYYY-MM-DD"
 
 /** domain/event/m-{away-slug}-vs-{home-slug}-{MMDD}, e.g. trend48.st/event/m-phoenix-suns-vs-portland-trail-blazers-1022 */
 const eventLink = (m: MatchSummary): string | null => {
