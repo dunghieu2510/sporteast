@@ -46,7 +46,10 @@ const LEAGUES: LeagueConfig[] = [
  * NCAAF (762 teams across every division, ungated by ESPN here), MLS and WNBA are left out on
  * purpose; their teams still get a logo the normal way, the first time they appear in a match.
  */
-const LOGO_CRAWL_SLUGS = new Set(["nfl", "nba", "nhl", "mlb"]);
+const LOGO_CRAWL_SLUGS = new Set(["nfl", "nhl", "mlb"]);
+
+/** Leagues that show the colored short-name badge instead of a team logo — never store one. */
+const NO_LOGO_SLUGS = new Set(["nba"]);
 
 /** YYYY-MM-DD theo giờ miền Đông Mỹ (cách ESPN chia ngày). */
 const etDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
@@ -315,7 +318,7 @@ export class EspnSyncService implements OnApplicationBootstrap {
   /** Accepts both the scoreboard's team shape (`t.logo`) and the /teams roster shape (normalized to the same `logo` field by fetchTeamRoster). */
   private async resolveTeam(league: { id: string; slug: string }, t: any) {
     const externalId = `${ID_PREFIX}${league.slug}:${t.id}`;
-    const logo: string | null = t.logo ?? null;
+    const logo: string | null = NO_LOGO_SLUGS.has(league.slug) ? null : (t.logo ?? null);
 
     const byExternal = await this.prisma.team.findUnique({ where: { externalId } });
     if (byExternal) {
