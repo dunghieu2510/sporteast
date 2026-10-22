@@ -5,7 +5,8 @@ import { PrismaService } from "../prisma/prisma.service";
 
 const TREND48_API = "https://trend48.st/api";
 const TREND48_CATEGORY: Record<string, string> = { nba: "basketball", nhl: "hockey" };
-const EMBED_TITLE = "Trend48";
+/** The 3 sources to attach per match: the base watch_url, then 2 pinned alternate streams. */
+const SOURCE_SUFFIXES = ["", "?source=admin&stream=1", "?source=admin&stream=2"];
 
 interface Trend48Match {
   title: string;
@@ -44,12 +45,15 @@ export class Trend48Service {
       let added = 0;
       for (const m of matches) {
         if (!m.awayTeam || !m.homeTeam) continue;
-        const url = links.get(`${m.awayTeam.name} vs ${m.homeTeam.name}`);
-        if (!url) continue;
-        const exists = await this.prisma.matchEmbed.findFirst({ where: { matchId: m.id, url }, select: { id: true } });
-        if (exists) continue;
-        await this.prisma.matchEmbed.create({ data: { matchId: m.id, title: EMBED_TITLE, url } });
-        added++;
+        const base = links.get(`${m.awayTeam.name} vs ${m.homeTeam.name}`);
+        if (!base) continue;
+        for (const [i, suffix] of SOURCE_SUFFIXES.entries()) {
+          const url = `${base}${suffix}`;
+          const exists = await this.prisma.matchEmbed.findFirst({ where: { matchId: m.id, url }, select: { id: true } });
+          if (exists) continue;
+          await this.prisma.matchEmbed.create({ data: { matchId: m.id, title: `Trend48 #${i + 1}`, url, sortOrder: i } });
+          added++;
+        }
       }
       if (added) this.logger.log(`Added ${added} trend48.st embed(s)`);
     } catch (err: any) {
