@@ -13,6 +13,7 @@ import { ContentModule } from "./content/content.module";
 import { AuthModule } from "./auth/auth.module";
 import { DiscordModule } from "./discord/discord.module";
 import { Trend48Module } from "./trend48/trend48.module";
+import { CloudflareModule } from "./cloudflare/cloudflare.module";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { Trend48Module } from "./trend48/trend48.module";
     AuthModule,
     DiscordModule,
     Trend48Module,
+    CloudflareModule,
   ],
 })
 export class AppModule {}
