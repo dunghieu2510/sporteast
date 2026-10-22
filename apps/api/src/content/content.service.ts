@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, Logger, NotFoundExc
 import { DEFAULT_SITE, isValidSite } from "@arena/types";
 import { PrismaService } from "../prisma/prisma.service";
 import { IndexNowService } from "../indexnow/indexnow.service";
+import { ESPN_LEAGUE_SLUGS } from "../espn/espn.service";
 import { brandDefaults, defaultCategories, defaultPages } from "./defaults";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -180,6 +181,11 @@ export class ContentService implements OnApplicationBootstrap {
 
   /** Keeps /sport/<slug> filtering matches correctly: the category slug must stay == a real league or sport slug. */
   private async renameLeagueOrSport(oldSlug: string, newSlug: string) {
+    // ESPN sync looks these up by this exact slug (findOrCreateLeague) — renaming one makes the
+    // next sync recreate a duplicate league under the old slug.
+    if (ESPN_LEAGUE_SLUGS.has(oldSlug)) {
+      throw new BadRequestException(`"${oldSlug}" is synced from ESPN by this exact slug and can't be renamed`);
+    }
     const league = await this.prisma.league.findUnique({ where: { slug: oldSlug } });
     if (league) {
       if (await this.prisma.league.findUnique({ where: { slug: newSlug } })) {

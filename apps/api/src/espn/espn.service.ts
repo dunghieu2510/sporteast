@@ -39,6 +39,10 @@ const LEAGUES: LeagueConfig[] = [
   { path: "hockey/nhl", slug: "nhl", name: "NHL", sport: { slug: "ice-hockey", name: "Ice Hockey" }, icon: "🏒", color: "#22d3ee" },
 ];
 
+/** These slugs are load-bearing for ESPN sync (findOrCreateLeague looks them up by exact slug) —
+ * renaming one elsewhere makes the next sync recreate a duplicate league under the old slug. */
+export const ESPN_LEAGUE_SLUGS = new Set(LEAGUES.map((l) => l.slug));
+
 /**
  * Leagues whose full roster we crawl up front (one ESPN request per league, not per team) to
  * backfill every team's logo immediately, even teams with no game yet. Kept to these 4 — all
@@ -398,6 +402,11 @@ export class EspnSyncService implements OnApplicationBootstrap {
   private async findOrCreateLeague(cfg: LeagueConfig) {
     const existing = await this.prisma.league.findUnique({ where: { slug: cfg.slug } });
     if (existing) return existing;
+
+    // The slug may have drifted (e.g. renamed via the admin category editor) — reuse by name
+    // before creating a duplicate league.
+    const byName = await this.prisma.league.findFirst({ where: { name: cfg.name } });
+    if (byName) return byName;
 
     const sport = await this.prisma.sport.upsert({
       where: { slug: cfg.sport.slug },

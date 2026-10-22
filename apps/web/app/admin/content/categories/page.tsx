@@ -203,7 +203,7 @@ function Manager() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Slug"
-            hint="URL: /sport/<slug>. Must match a league or sport slug (e.g. nfl, soccer). Changing it renames that league/sport's slug too, and the old URL 301-redirects here."
+            hint="URL: /sport/<slug>. Must match a league or sport slug. Changing it renames that league/sport's slug too, and the old URL 301-redirects here. Leagues auto-synced from ESPN (nfl, ncaaf, mlb, nba, mls, wnba, nhl) can't be renamed."
           >
             <input value={form.slug} onChange={(e) => set("slug", e.target.value.toLowerCase())} className={inputCls} />
           </Field>
