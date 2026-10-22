@@ -82,6 +82,10 @@ export default async function MatchPage({ params }: Props) {
   const homeColor = match.homeTeam?.primaryColor ?? match.league.color;
   const awayColor = match.awayTeam?.primaryColor ?? match.league.color;
   const gameClock = formatGameClock(match.league.sport.slug, match.period, match.clock);
+  // Embeds only once we're within 15min of kickoff (or already live/finished) — no point opening the
+  // player hours early.
+  const minsToStart = (new Date(match.startTime).getTime() - Date.now()) / 60_000;
+  const embedsReady = match.status !== "SCHEDULED" || minsToStart <= 15;
 
   return (
     <div className="relative flex flex-col gap-6 pt-8">
@@ -121,8 +125,13 @@ export default async function MatchPage({ params }: Props) {
       </section>
 
       <div className="flex flex-col gap-6">
-        {match.embeds.length > 0 ? (
+        {match.embeds.length > 0 && embedsReady ? (
           <EmbedPlayer embeds={match.embeds} title={match.title} />
+        ) : match.embeds.length > 0 ? (
+          <div className="glass flex flex-col items-center gap-2 p-10 text-center">
+            <p className="text-sm text-muted">Stream opens 15 minutes before kickoff</p>
+            <p className="text-xl text-neon">{formatStartsIn(match.startTime)}</p>
+          </div>
         ) : stream?.embedUrl ? (
           <Player stream={stream} />
         ) : null}
