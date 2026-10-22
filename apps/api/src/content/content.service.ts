@@ -182,11 +182,19 @@ export class ContentService implements OnApplicationBootstrap {
   private async renameLeagueOrSport(oldSlug: string, newSlug: string) {
     const league = await this.prisma.league.findUnique({ where: { slug: oldSlug } });
     if (league) {
+      if (await this.prisma.league.findUnique({ where: { slug: newSlug } })) {
+        throw new ConflictException(`"${newSlug}" is already used by another league`);
+      }
       await this.prisma.league.update({ where: { id: league.id }, data: { slug: newSlug } });
       return;
     }
     const sport = await this.prisma.sport.findUnique({ where: { slug: oldSlug } });
-    if (sport) await this.prisma.sport.update({ where: { id: sport.id }, data: { slug: newSlug } });
+    if (sport) {
+      if (await this.prisma.sport.findUnique({ where: { slug: newSlug } })) {
+        throw new ConflictException(`"${newSlug}" is already used by another sport`);
+      }
+      await this.prisma.sport.update({ where: { id: sport.id }, data: { slug: newSlug } });
+    }
   }
 
   private async recordRedirect(site: string, fromSlug: string, toSlug: string) {
