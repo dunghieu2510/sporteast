@@ -6,8 +6,12 @@ import { MatchesService } from "../matches/matches.service";
 
 const API = "https://discord.com/api/v10";
 const TZ = "Asia/Ho_Chi_Minh";
-const LEAGUES = ["nba", "nhl", "nfl"];
+const GROUPED_LEAGUES = ["nfl"];
+const PER_MATCH_LEAGUES = ["nba", "nhl"];
+const LEAGUES = [...GROUPED_LEAGUES, ...PER_MATCH_LEAGUES];
 const WINDOW_MS = 24 * 3_600_000;
+const MAX_EMBEDS_PER_MESSAGE = 10; // Discord's hard limit per message
+const EVENT_DOMAIN = "https://trend48.ts";
 
 const CHANNEL_ENV: Record<string, string> = {
   methstreams: "DISCORD_CHANNEL_METHSTREAMS",
@@ -16,9 +20,20 @@ const CHANNEL_ENV: Record<string, string> = {
 };
 
 const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }); // "YYYY-MM-DD"
+
+/** domain/event/m-{away-slug}-vs-{home-slug}-{MMDD}, e.g. trend48.ts/event/m-phoenix-suns-vs-portland-trail-blazers-1022 */
+const eventLink = (m: MatchSummary): string | null => {
+  if (!m.awayTeam || !m.homeTeam) return null;
+  const mmdd = dayFmt.format(new Date(m.startTime)).slice(5).replace("-", "");
+  return `${EVENT_DOMAIN}/event/m-${m.awayTeam.slug}-vs-${m.homeTeam.slug}-${mmdd}`;
+};
 
 /**
  * Posts the day's NBA/NHL/NFL schedule to each site's Discord channel, once a day, via a Discord bot.
+ * NFL stays one grouped summary embed linking to the site's own category page. NBA/NHL each get their
+ * own embed linking to trend48.ts's event page — batched across messages since Discord caps a message
+ * at 10 embeds.
  * Config: DISCORD_BOT_TOKEN + one DISCORD_CHANNEL_<SITE> per site; a site with no channel id is skipped.
  */
 @Injectable()
@@ -41,7 +56,9 @@ export class DiscordService {
     for (const site of SITES) {
       const channelId = process.env[CHANNEL_ENV[site.key]];
       if (!channelId) continue;
-      await this.post(channelId, this.buildEmbed(site, upcoming));
+      for (const body of this.buildMessages(site, upcoming)) {
+        await this.post(channelId, body);
+      }
     }
   }
 
@@ -51,7 +68,18 @@ export class DiscordService {
     return all.filter((m) => LEAGUES.includes(m.league.slug) && new Date(m.startTime).getTime() <= now + WINDOW_MS);
   }
 
-  private buildEmbed(site: SiteInfo, matches: MatchSummary[]) {
+  private buildMessages(site: SiteInfo, matches: MatchSummary[]): { embeds: unknown[] }[] {
+    const grouped = matches.filter((m) => GROUPED_LEAGUES.includes(m.league.slug));
+    const perMatch = matches.filter((m) => PER_MATCH_LEAGUES.includes(m.league.slug) && eventLink(m));
+
+    const messages: { embeds: unknown[] }[] = [{ embeds: [this.buildGroupedEmbed(site, grouped)] }];
+    for (let i = 0; i < perMatch.length; i += MAX_EMBEDS_PER_MESSAGE) {
+      messages.push({ embeds: perMatch.slice(i, i + MAX_EMBEDS_PER_MESSAGE).map((m) => this.buildMatchEmbed(m)) });
+    }
+    return messages;
+  }
+
+  private buildGroupedEmbed(site: SiteInfo, matches: MatchSummary[]) {
     const byLeague = new Map<string, MatchSummary[]>();
     for (const m of matches) {
       const list = byLeague.get(m.league.slug) ?? [];
@@ -61,8 +89,8 @@ export class DiscordService {
 
     const fields =
       byLeague.size === 0
-        ? [{ name: "Today", value: "No NBA/NHL/NFL games today." }]
-        : LEAGUES.filter((slug) => byLeague.has(slug)).map((slug) => {
+        ? [{ name: "Today", value: "No NFL games today." }]
+        : GROUPED_LEAGUES.filter((slug) => byLeague.has(slug)).map((slug) => {
             const list = byLeague.get(slug)!;
             const { name, icon } = list[0].league;
             const lines = list.map((m) => `${timeFmt.format(new Date(m.startTime))} — ${m.title}`);
@@ -72,7 +100,16 @@ export class DiscordService {
             };
           });
 
-    return { embeds: [{ title: "📅 Today's Schedule", color: 0x39ff88, fields, timestamp: new Date().toISOString() }] };
+    return { title: "📅 Today's Schedule", color: 0x39ff88, fields, timestamp: new Date().toISOString() };
+  }
+
+  private buildMatchEmbed(m: MatchSummary) {
+    const { icon, name: leagueName } = m.league;
+    return {
+      title: `${icon ?? ""} ${m.awayTeam!.name} vs ${m.homeTeam!.name}`.trim(),
+      description: `${leagueName} — ${timeFmt.format(new Date(m.startTime))}\n[Watch](${eventLink(m)})`,
+      color: 0x39ff88,
+    };
   }
 
   private async post(channelId: string, body: unknown): Promise<void> {
