@@ -33,7 +33,7 @@ const LEAGUES: LeagueConfig[] = [
   { path: "football/nfl", slug: "nfl", name: "NFL", sport: { slug: "american-football", name: "American Football" }, icon: "🏈", color: "#3b82f6" },
   { path: "football/college-football", query: "groups=80", slug: "ncaaf", name: "NCAAF", sport: { slug: "american-football", name: "American Football" }, icon: "🏈", color: "#a855f7" },
   { path: "baseball/mlb", slug: "mlb", name: "MLB", sport: { slug: "baseball", name: "Baseball" }, icon: "⚾", color: "#ef4444" },
-  { path: "basketball/nba", slug: "nba", name: "NBA", sport: { slug: "basketball", name: "Basketball" }, icon: "🏀", color: "#f97316" },
+  { path: "basketball/nba", slug: "nba-streams", name: "NBA", sport: { slug: "basketball", name: "Basketball" }, icon: "🏀", color: "#f97316" },
   { path: "soccer/usa.1", slug: "mls", name: "MLS", sport: { slug: "soccer", name: "Soccer" }, icon: "⚽", color: "#06b6d4" },
   { path: "basketball/wnba", slug: "wnba", name: "WNBA", sport: { slug: "basketball", name: "Basketball" }, icon: "🏀", color: "#ec4899" },
   { path: "hockey/nhl", slug: "nhl", name: "NHL", sport: { slug: "ice-hockey", name: "Ice Hockey" }, icon: "🏒", color: "#22d3ee" },
@@ -53,7 +53,7 @@ export const ESPN_LEAGUE_SLUGS = new Set(LEAGUES.map((l) => l.slug));
 const LOGO_CRAWL_SLUGS = new Set(["nfl", "nhl", "mlb"]);
 
 /** Leagues that show the colored short-name badge instead of a team logo — never store one. */
-const NO_LOGO_SLUGS = new Set(["nba"]);
+const NO_LOGO_SLUGS = new Set(["nba-streams"]);
 
 /** YYYY-MM-DD theo giờ miền Đông Mỹ (cách ESPN chia ngày). */
 const etDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);

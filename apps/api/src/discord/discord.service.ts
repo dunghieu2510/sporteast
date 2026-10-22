@@ -6,7 +6,7 @@ import { MatchesService } from "../matches/matches.service";
 
 const API = "https://discord.com/api/v10";
 const TZ = "Asia/Ho_Chi_Minh";
-const LEAGUES = ["nba", "nhl", "nfl"];
+const LEAGUES = ["nba-streams", "nhl", "nfl"];
 const WINDOW_MS = 24 * 3_600_000;
 
 const CHANNEL_ENV: Record<string, string> = {

@@ -51,7 +51,7 @@ const FALLBACK_CATEGORIES: CategoryContent[] = [
   fallbackCategory("nfl", "NFL", "🏈"),
   fallbackCategory("ncaaf", "NCAAF", "🏈"),
   fallbackCategory("mlb", "MLB", "⚾"),
-  fallbackCategory("nba", "NBA", "🏀"),
+  fallbackCategory("nba-streams", "NBA", "🏀"),
   fallbackCategory("soccer", "Soccer", "⚽"),
   fallbackCategory("wnba", "WNBA", "🏀"),
   fallbackCategory("nhl", "NHL", "🏒"),

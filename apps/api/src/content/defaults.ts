@@ -31,7 +31,7 @@ export const defaultCategories = [
       "Never miss an MLB game with Methstreams. Track the baseball season with live scores, complete schedules for all 30 teams, and real-time game updates.",
   },
   {
-    slug: "nba",
+    slug: "nba-streams",
     name: "NBA",
     icon: "🏀",
     description: "NBA Basketball schedules, live scores, and game updates.",
