@@ -132,12 +132,10 @@ function Manager() {
 
   const save = () =>
     run(async () => {
-      const { slug, ...rest } = form;
-      const body = JSON.stringify(rest);
-      if (isNew) await adminFetch(`/categories?site=${site}`, { method: "POST", body: JSON.stringify({ slug, ...rest }) });
-      else await adminFetch(`/categories/${encodeURIComponent(selected)}?site=${site}`, { method: "PUT", body });
-      await load(isNew ? slug : selected);
-      setMsg({ ok: true, text: isNew ? "Category created." : "Saved." });
+      if (isNew) await adminFetch(`/categories?site=${site}`, { method: "POST", body: JSON.stringify(form) });
+      else await adminFetch(`/categories/${encodeURIComponent(selected)}?site=${site}`, { method: "PUT", body: JSON.stringify(form) });
+      await load(isNew ? form.slug : form.slug);
+      setMsg({ ok: true, text: isNew ? "Category created." : form.slug !== selected ? "Saved — old URL now redirects here." : "Saved." });
     });
 
   const remove = () =>
@@ -203,13 +201,11 @@ function Manager() {
         <h2 className="font-display text-lg font-bold text-white">{isNew ? "New category" : `Edit ${form.name}`}</h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Slug" hint={isNew ? "URL: /sport/<slug>. Must match a league or sport slug (e.g. nfl, soccer)." : "Slug cannot be changed."}>
-            <input
-              value={form.slug}
-              disabled={!isNew}
-              onChange={(e) => set("slug", e.target.value.toLowerCase())}
-              className={`${inputCls} disabled:opacity-60`}
-            />
+          <Field
+            label="Slug"
+            hint="URL: /sport/<slug>. Must match a league or sport slug (e.g. nfl, soccer). Changing it renames that league/sport's slug too, and the old URL 301-redirects here."
+          >
+            <input value={form.slug} onChange={(e) => set("slug", e.target.value.toLowerCase())} className={inputCls} />
           </Field>
           <Field label="Menu name">
             <input value={form.name} onChange={(e) => set("name", e.target.value)} className={inputCls} />

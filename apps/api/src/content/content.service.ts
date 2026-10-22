@@ -160,9 +160,53 @@ export class ContentService implements OnApplicationBootstrap {
   async updateCategory(slug: string, body: Body, site?: string) {
     const s = siteOf(site);
     await this.getCategory(slug, true, s);
-    const row = await this.prisma.category.update({ where: { site_slug: { site: s, slug } }, data: categoryData(body, true) });
-    this.indexNow.submit([`/sport/${slug}`, "/"]);
+
+    const newSlug = body.slug === undefined ? slug : slugOf(body);
+    if (newSlug !== slug) {
+      if (await this.prisma.category.findUnique({ where: { site_slug: { site: s, slug: newSlug } } })) {
+        throw new ConflictException(`Category "${newSlug}" already exists`);
+      }
+      await this.renameLeagueOrSport(slug, newSlug);
+      await this.recordRedirect(s, slug, newSlug);
+    }
+
+    const row = await this.prisma.category.update({
+      where: { site_slug: { site: s, slug } },
+      data: { ...categoryData(body, true), ...(newSlug !== slug && { slug: newSlug }) },
+    });
+    this.indexNow.submit([`/sport/${newSlug}`, `/sport/${slug}`, "/"]);
     return row;
+  }
+
+  /** Keeps /sport/<slug> filtering matches correctly: the category slug must stay == a real league or sport slug. */
+  private async renameLeagueOrSport(oldSlug: string, newSlug: string) {
+    const league = await this.prisma.league.findUnique({ where: { slug: oldSlug } });
+    if (league) {
+      await this.prisma.league.update({ where: { id: league.id }, data: { slug: newSlug } });
+      return;
+    }
+    const sport = await this.prisma.sport.findUnique({ where: { slug: oldSlug } });
+    if (sport) await this.prisma.sport.update({ where: { id: sport.id }, data: { slug: newSlug } });
+  }
+
+  private async recordRedirect(site: string, fromSlug: string, toSlug: string) {
+    // Collapse chains: anything that used to redirect to the old slug now points straight to the new one.
+    await this.prisma.categoryRedirect.updateMany({ where: { site, toSlug: fromSlug }, data: { toSlug } });
+    // Renaming back onto a slug that currently redirects elsewhere — that redirect is now stale.
+    await this.prisma.categoryRedirect.deleteMany({ where: { site, fromSlug: toSlug } });
+    await this.prisma.categoryRedirect.upsert({
+      where: { site_fromSlug: { site, fromSlug } },
+      create: { site, fromSlug, toSlug },
+      update: { toSlug },
+    });
+  }
+
+  async getCategoryRedirect(fromSlug: string, site?: string) {
+    const row = await this.prisma.categoryRedirect.findUnique({
+      where: { site_fromSlug: { site: siteOf(site), fromSlug } },
+    });
+    if (!row) throw new NotFoundException();
+    return { toSlug: row.toSlug };
   }
 
   async removeCategory(slug: string, site?: string) {

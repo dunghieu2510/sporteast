@@ -103,6 +103,17 @@ model Category {
   @@unique([site, slug])
 }
 
+/// Khi đổi slug 1 Category, giữ lại slug cũ ở đây để 301 về slug mới.
+model CategoryRedirect {
+  id        String   @id @default(cuid())
+  site      String   @default("methstreams")
+  fromSlug  String
+  toSlug    String
+  createdAt DateTime @default(now())
+
+  @@unique([site, fromSlug])
+}
+
 /// Trang tĩnh: Privacy, Terms, DMCA, Contact, About...
 model Page {
   id              String   @id @default(cuid())

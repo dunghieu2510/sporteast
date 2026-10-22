@@ -67,6 +67,10 @@ export function getCategory(slug: string) {
   );
 }
 
+export function getCategoryRedirect(slug: string) {
+  return request<{ toSlug: string }>(`/categories/${encodeURIComponent(slug)}/redirect?site=${SITE_KEY}`, () => null);
+}
+
 export function getPages() {
   return request<PageContent[]>(`/pages?site=${SITE_KEY}`, () => []);
 }

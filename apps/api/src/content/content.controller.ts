@@ -20,6 +20,12 @@ export class ContentController {
     return this.content.getCategory(slug, false, site);
   }
 
+  /** Where an old category slug now points, after a rename. */
+  @Get("categories/:slug/redirect")
+  categoryRedirect(@Param("slug") slug: string, @Query("site") site?: string) {
+    return this.content.getCategoryRedirect(slug, site);
+  }
+
   @Get("pages")
   pages(@Query("site") site?: string) {
     return this.content.listPages({}, site);

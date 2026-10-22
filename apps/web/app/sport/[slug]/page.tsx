@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { getCategory, getLeagues, getMatches } from "@/lib/api";
+import { notFound, permanentRedirect } from "next/navigation";
+import { getCategory, getCategoryRedirect, getLeagues, getMatches } from "@/lib/api";
 import { SITE_NAME } from "@/lib/seo";
 import { GameList } from "@/components/game-list";
 import { MockNotice } from "@/components/mock-notice";
@@ -28,7 +28,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SportPage({ params }: Props) {
   const { slug } = await params;
   const { data: category } = await getCategory(slug);
-  if (!category) notFound();
+  if (!category) {
+    const { data: redirect } = await getCategoryRedirect(slug);
+    if (redirect) permanentRedirect(`/sport/${redirect.toSlug}`);
+    notFound();
+  }
 
   const [leagues, matches] = await Promise.all([getLeagues(), getMatches()]);
   const isMock = leagues.source === "mock" || matches.source === "mock";
