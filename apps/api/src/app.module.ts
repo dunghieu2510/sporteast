@@ -12,6 +12,7 @@ import { EspnModule } from "./espn/espn.module";
 import { ContentModule } from "./content/content.module";
 import { AuthModule } from "./auth/auth.module";
 import { DiscordModule } from "./discord/discord.module";
+import { Trend48Module } from "./trend48/trend48.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { DiscordModule } from "./discord/discord.module";
     ContentModule,
     AuthModule,
     DiscordModule,
+    Trend48Module,
   ],
 })
 export class AppModule {}
