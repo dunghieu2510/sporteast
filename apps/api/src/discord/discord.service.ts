@@ -11,7 +11,7 @@ const PER_MATCH_LEAGUES = ["nba", "nhl"];
 const LEAGUES = [...GROUPED_LEAGUES, ...PER_MATCH_LEAGUES];
 const WINDOW_MS = 24 * 3_600_000;
 const MAX_EMBEDS_PER_MESSAGE = 10; // Discord's hard limit per message
-const EVENT_DOMAIN = "https://trend48.ts";
+const EVENT_DOMAIN = "https://trend48.st";
 
 const CHANNEL_ENV: Record<string, string> = {
   methstreams: "DISCORD_CHANNEL_METHSTREAMS",
@@ -22,7 +22,7 @@ const CHANNEL_ENV: Record<string, string> = {
 const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }); // "YYYY-MM-DD"
 
-/** domain/event/m-{away-slug}-vs-{home-slug}-{MMDD}, e.g. trend48.ts/event/m-phoenix-suns-vs-portland-trail-blazers-1022 */
+/** domain/event/m-{away-slug}-vs-{home-slug}-{MMDD}, e.g. trend48.st/event/m-phoenix-suns-vs-portland-trail-blazers-1022 */
 const eventLink = (m: MatchSummary): string | null => {
   if (!m.awayTeam || !m.homeTeam) return null;
   const mmdd = dayFmt.format(new Date(m.startTime)).slice(5).replace("-", "");
@@ -32,7 +32,7 @@ const eventLink = (m: MatchSummary): string | null => {
 /**
  * Posts the day's NBA/NHL/NFL schedule to each site's Discord channel, once a day, via a Discord bot.
  * NFL stays one grouped summary embed linking to the site's own category page. NBA/NHL each get their
- * own embed linking to trend48.ts's event page — batched across messages since Discord caps a message
+ * own embed linking to trend48.st's event page — batched across messages since Discord caps a message
  * at 10 embeds.
  * Config: DISCORD_BOT_TOKEN + one DISCORD_CHANNEL_<SITE> per site; a site with no channel id is skipped.
  */
