@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const m of matches.data ?? []) {
     entries.push({
       url: `${SITE_URL}/match/${m.slug}`,
-      lastModified: new Date(m.startTime),
+      lastModified: now, // startTime is often in the future — not a meaningful "last modified"
       changeFrequency: "hourly",
       priority: 0.7,
     });

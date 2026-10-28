@@ -3,7 +3,7 @@ import { getLeagues, getMatches, getPage } from "@/lib/api";
 import { GameList } from "@/components/game-list";
 import { HomeContent } from "@/components/home-content";
 import { MockNotice } from "@/components/mock-notice";
-import { SITE_NAME } from "@/lib/seo";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const DEFAULT_TITLE = "Live Sports Schedules, Scores & Streams";
 const DEFAULT_HOME_DESC = `Today's NFL, NBA, NHL, MLB, MLS, WNBA and college football schedules with start times in US Eastern and live scores on ${SITE_NAME} — a free streameast alternative.`;
@@ -16,8 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: "/" },
-    openGraph: { type: "website", siteName: SITE_NAME, url: "/", title: ogTitle, description },
+    alternates: { canonical: `${SITE_URL}/` },
+    openGraph: { type: "website", siteName: SITE_NAME, url: `${SITE_URL}/`, title: ogTitle, description },
     twitter: { card: "summary_large_image", title: ogTitle, description },
   };
 }
