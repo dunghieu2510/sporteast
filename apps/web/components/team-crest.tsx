@@ -1,6 +1,6 @@
 import type { TeamSummary } from "@arena/types";
 
-const sizes = { sm: "size-9 text-[10px]", md: "size-12 text-xs", lg: "size-20 text-base" };
+const sizes = { sm: "size-9 text-[10px]", md: "size-12 text-xs", lg: "size-14 sm:size-20 text-sm sm:text-base" };
 
 /** Logo đội; khi chưa có ảnh thì vẽ huy hiệu từ màu đội. */
 export function TeamCrest({ team, size = "md" }: { team: TeamSummary; size?: keyof typeof sizes }) {

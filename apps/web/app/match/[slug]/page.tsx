@@ -182,12 +182,12 @@ function Scoreboard({ match }: { match: MatchDetail }) {
   const home = match.homeTeam!;
   const away = match.awayTeam!;
   return (
-    <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4">
+    <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
       <div className="flex items-center justify-end gap-3">
         <span className="hidden text-right font-display text-xl font-semibold sm:block">{home.name}</span>
         <TeamCrest team={home} size="lg" />
       </div>
-      <div className="tabular text-center font-display text-5xl font-bold">
+      <div className="tabular text-center font-display text-3xl font-bold sm:text-5xl">
         {match.status === "SCHEDULED" ? (
           <span className="text-xl text-neon">{formatStartsIn(match.startTime)}</span>
         ) : (
