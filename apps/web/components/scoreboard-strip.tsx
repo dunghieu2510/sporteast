@@ -27,7 +27,7 @@ export async function ScoreboardStrip({
   const isToday = date === etDate(0);
 
   return (
-    <div className="flex items-stretch gap-3">
+    <div className="flex items-center gap-3">
       {leagues && <LeagueSelect leagues={leagues} selected={categorySlug} />}
 
       <div className="flex shrink-0 flex-col items-center gap-1">
