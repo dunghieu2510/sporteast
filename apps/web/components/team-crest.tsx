@@ -1,8 +1,8 @@
 import Image from "next/image";
 import type { TeamSummary } from "@arena/types";
 
-const sizes = { sm: "size-9 text-[10px]", md: "size-12 text-xs", lg: "size-14 sm:size-20 text-sm sm:text-base" };
-const px = { sm: 36, md: 48, lg: 80 };
+const sizes = { xs: "size-5 text-[8px]", sm: "size-9 text-[10px]", md: "size-12 text-xs", lg: "size-14 sm:size-20 text-sm sm:text-base" };
+const px = { xs: 20, sm: 36, md: 48, lg: 80 };
 
 /** Logo đội; khi chưa có ảnh thì vẽ huy hiệu từ màu đội. */
 export function TeamCrest({ team, size = "md" }: { team: TeamSummary; size?: keyof typeof sizes }) {

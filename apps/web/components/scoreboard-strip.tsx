@@ -49,9 +49,9 @@ function ScoreCard({ match: m }: { match: MatchSummary }) {
   const showScore = live || final;
 
   return (
-    <Link href={`/match/${m.slug}`} className="pixel-row flex w-44 shrink-0 flex-col gap-1.5 px-3 py-2.5">
-      <span className={`text-[11px] font-bold ${live ? "text-live" : "text-muted"}`}>
-        {live ? "LIVE" : final ? "Final" : formatKickoffTime(m.startTime)}
+    <Link href={`/match/${m.slug}`} className="pixel-row flex w-32 shrink-0 flex-col gap-1 px-2.5 py-2">
+      <span className={`text-center text-[10px] font-bold uppercase ${live ? "text-live" : "text-muted"}`}>
+        {live ? "Live" : final ? "Final" : formatKickoffTime(m.startTime)}
       </span>
       <TeamRow team={m.awayTeam} score={m.awayScore} show={showScore} won={final && m.awayScore > m.homeScore} />
       <TeamRow team={m.homeTeam} score={m.homeScore} show={showScore} won={final && m.homeScore > m.awayScore} />
@@ -61,10 +61,15 @@ function ScoreCard({ match: m }: { match: MatchSummary }) {
 
 function TeamRow({ team, score, show, won }: { team: TeamSummary; score: number; show: boolean; won: boolean }) {
   return (
-    <span className="flex items-center gap-2">
-      <TeamCrest team={team} size="sm" />
-      <span className={`min-w-0 flex-1 truncate text-sm ${won ? "font-bold text-white" : "text-white/80"}`}>{team.shortName}</span>
-      {show && <span className={`tabular text-sm ${won ? "font-bold text-white" : "text-white/60"}`}>{score}</span>}
+    <span className="flex items-center gap-1.5">
+      <TeamCrest team={team} size="xs" />
+      <span className={`min-w-0 flex-1 truncate text-xs ${won ? "font-bold text-white" : "text-white/70"}`}>{team.shortName}</span>
+      {show && (
+        <span className="flex items-center gap-0.5">
+          <span className={`tabular text-xs ${won ? "font-bold text-white" : "text-white/60"}`}>{score}</span>
+          {won && <span className="text-[8px] text-neon">◂</span>}
+        </span>
+      )}
     </span>
   );
 }

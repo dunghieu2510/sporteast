@@ -149,7 +149,7 @@ export class EspnSyncService implements OnApplicationBootstrap {
         }
       }
 
-      const removed = await this.cleanup(today, seen, complete);
+      const removed = await this.cleanup(seen, complete);
       const detailed = await this.syncDetails(pending);
 
       // New or removed matches change the home page and the new match pages → tell IndexNow.
@@ -419,13 +419,15 @@ export class EspnSyncService implements OnApplicationBootstrap {
   }
 
   /** Xóa trận ESPN của ngày trước, và trận hôm nay còn SCHEDULED nhưng ESPN không còn trả về. */
-  private async cleanup(today: string, seen: Set<string>, complete: boolean) {
+  private async cleanup(seen: Set<string>, complete: boolean) {
+    // Keep 1 day of finished matches (yesterday) for the scoreboard strip, not just today+.
+    const cutoff = etDay(new Date(Date.now() - 86_400_000));
     const rows = await this.prisma.match.findMany({
       where: { externalId: { startsWith: ID_PREFIX } },
       select: { id: true, externalId: true, startTime: true, status: true },
     });
     const stale = rows.filter(
-      (m) => etDay(m.startTime) < today || (complete && m.status === MatchStatus.SCHEDULED && !seen.has(m.externalId!)),
+      (m) => etDay(m.startTime) < cutoff || (complete && m.status === MatchStatus.SCHEDULED && !seen.has(m.externalId!)),
     );
     if (stale.length) await this.prisma.match.deleteMany({ where: { id: { in: stale.map((m) => m.id) } } });
     return stale.length;

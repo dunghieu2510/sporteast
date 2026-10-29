@@ -53,6 +53,8 @@ export default async function SportPage({ params, searchParams }: Props) {
     <div className="flex flex-col gap-6 pt-8">
       {isMock && <MockNotice />}
 
+      <ScoreboardStrip categorySlug={slug} date={date} />
+
       <Breadcrumbs
         items={[
           { name: "Home", href: "/" },
@@ -71,8 +73,6 @@ export default async function SportPage({ params, searchParams }: Props) {
           </div>
         </div>
       </header>
-
-      <ScoreboardStrip categorySlug={slug} date={date} />
 
       <GameList leagues={sportLeagues} matches={sportMatches} />
 
