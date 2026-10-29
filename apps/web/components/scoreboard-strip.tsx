@@ -15,18 +15,18 @@ export async function ScoreboardStrip({ categorySlug, date }: { categorySlug: st
 
   return (
     <div className="flex items-stretch gap-3">
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 flex-col items-center gap-1.5">
         {isToday ? (
-          <span className="pixel-btn px-3 py-2 text-sm text-white/30">‹</span>
+          <span className="pixel-btn px-3 py-1 text-sm text-white/30">‹</span>
         ) : (
-          <Link href={`?date=${shiftEtDate(date, -1)}`} className="pixel-btn px-3 py-2 text-sm text-white">
+          <Link href={`?date=${shiftEtDate(date, -1)}`} className="pixel-btn px-3 py-1 text-sm text-white">
             ‹
           </Link>
         )}
         <span className="w-16 shrink-0 text-center text-sm font-semibold text-white">
           {isToday ? "Today" : formatEtDate(date)}
         </span>
-        <Link href={`?date=${shiftEtDate(date, 1)}`} className="pixel-btn px-3 py-2 text-sm text-white">
+        <Link href={`?date=${shiftEtDate(date, 1)}`} className="pixel-btn px-3 py-1 text-sm text-white">
           ›
         </Link>
       </div>
