@@ -36,9 +36,13 @@ export function getLeagues() {
   return request<LeagueSummary[]>("/leagues", mockLeagues);
 }
 
-export function getMatches(status?: MatchStatus) {
-  const qs = status ? `?status=${status}` : "";
-  return request<MatchSummary[]>(`/matches${qs}`, () =>
+export function getMatches(opts: { status?: MatchStatus; date?: string } = {}) {
+  const { status, date } = opts;
+  const qs = new URLSearchParams();
+  if (status) qs.set("status", status);
+  if (date) qs.set("date", date);
+  const q = qs.toString();
+  return request<MatchSummary[]>(`/matches${q ? `?${q}` : ""}`, () =>
     status ? mockMatches().filter((m) => m.status === status) : mockMatches(),
   );
 }

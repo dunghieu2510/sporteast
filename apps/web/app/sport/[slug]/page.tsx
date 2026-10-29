@@ -6,8 +6,10 @@ import { GameList } from "@/components/game-list";
 import { MockNotice } from "@/components/mock-notice";
 import { RichText } from "@/components/rich-text";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { ScoreboardStrip } from "@/components/scoreboard-strip";
+import { etDate } from "@/lib/format";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ date?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -25,8 +27,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function SportPage({ params }: Props) {
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function SportPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { date: dateParam } = await searchParams;
+  const date = dateParam && DATE_RE.test(dateParam) ? dateParam : etDate(0);
   const { data: category } = await getCategory(slug);
   if (!category) {
     const { data: redirect } = await getCategoryRedirect(slug);
@@ -65,6 +71,8 @@ export default async function SportPage({ params }: Props) {
           </div>
         </div>
       </header>
+
+      <ScoreboardStrip categorySlug={slug} date={date} />
 
       <GameList leagues={sportLeagues} matches={sportMatches} />
 

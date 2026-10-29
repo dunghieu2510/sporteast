@@ -29,6 +29,9 @@ const summaryInclude = {
   awayTeam: { select: teamSelect },
 } satisfies Prisma.MatchInclude;
 
+/** YYYY-MM-DD in US Eastern — same day boundary ESPN itself uses. */
+const etDay = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(d);
+
 @Injectable()
 export class MatchesService {
   constructor(
@@ -36,12 +39,12 @@ export class MatchesService {
     private readonly redis: RedisService,
   ) {}
 
-  list(params: { status?: MatchStatus; league?: string; limit: number }) {
-    const { status, league, limit } = params;
+  list(params: { status?: MatchStatus; league?: string; limit: number; date?: string }) {
+    const { status, league, limit, date } = params;
     // Live lists change constantly → short cache; everything else can live longer.
     const ttl = status === "LIVE" ? 10 : 60;
-    return this.redis.remember(`matches:${status ?? "all"}:${league ?? "all"}:${limit}`, ttl, () =>
-      this.prisma.match.findMany({
+    return this.redis.remember(`matches:${status ?? "all"}:${league ?? "all"}:${limit}:${date ?? "all"}`, ttl, async () => {
+      const rows = await this.prisma.match.findMany({
         where: {
           ...(status && { status }),
           ...(league && { league: { slug: league } }),
@@ -49,9 +52,10 @@ export class MatchesService {
         include: summaryInclude,
         omit: { details: true },
         orderBy: { startTime: "asc" },
-        take: limit,
-      }),
-    );
+        take: date ? 500 : limit, // a day's worth of games for one league is always far under this
+      });
+      return date ? rows.filter((m) => etDay(m.startTime) === date).slice(0, limit) : rows;
+    });
   }
 
   async findBySlug(slug: string) {
