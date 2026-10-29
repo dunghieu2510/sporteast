@@ -15,7 +15,7 @@ const SOURCES = [
 const TAIFOOD_DOMAIN = "https://taifood-blog.asia";
 /** taifood-blog.asia's own team codes — not standard ESPN abbreviations (e.g. "ny" not "nyk",
  * "sa" not "sas", "gs" not "gsw", "no" not "nop", "utah" spelled out). Pinned from confirmed
- * examples; Memphis Grizzlies and Phoenix Suns have no confirmed code yet. */
+ * examples. */
 const TAIFOOD_TEAM_CODE: Record<string, string> = {
   "Brooklyn Nets": "bkn",
   "Boston Celtics": "bos",
@@ -45,6 +45,8 @@ const TAIFOOD_TEAM_CODE: Record<string, string> = {
   "Oklahoma City Thunder": "okc",
   "Dallas Mavericks": "dal",
   "Los Angeles Clippers": "lac",
+  "Memphis Grizzlies": "mem",
+  "Phoenix Suns": "phx",
 };
 const taifoodDayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }); // "YYYY-MM-DD"
 
