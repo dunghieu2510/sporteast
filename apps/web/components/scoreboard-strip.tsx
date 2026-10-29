@@ -30,18 +30,18 @@ export async function ScoreboardStrip({
     <div className="flex items-stretch gap-3">
       {leagues && <LeagueSelect leagues={leagues} selected={categorySlug} />}
 
-      <div className="flex shrink-0 flex-col items-center gap-1.5">
+      <div className="flex shrink-0 flex-col items-center gap-1">
         {isToday ? (
-          <span className="pixel-btn px-3 py-1 text-sm text-white/30">‹</span>
+          <span className="pixel-tag px-2 py-0.5 text-xs text-white/30">‹</span>
         ) : (
-          <Link href={`?date=${shiftEtDate(date, -1)}`} className="pixel-btn px-3 py-1 text-sm text-white">
+          <Link href={`?date=${shiftEtDate(date, -1)}`} className="pixel-tag px-2 py-0.5 text-xs text-white">
             ‹
           </Link>
         )}
-        <span className="w-16 shrink-0 text-center text-sm font-semibold text-white">
+        <span className="w-14 shrink-0 text-center text-xs font-semibold text-white">
           {isToday ? "Today" : formatEtDate(date)}
         </span>
-        <Link href={`?date=${shiftEtDate(date, 1)}`} className="pixel-btn px-3 py-1 text-sm text-white">
+        <Link href={`?date=${shiftEtDate(date, 1)}`} className="pixel-tag px-2 py-0.5 text-xs text-white">
           ›
         </Link>
       </div>

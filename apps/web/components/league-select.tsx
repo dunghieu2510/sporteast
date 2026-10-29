@@ -16,7 +16,7 @@ export function LeagueSelect({ leagues, selected }: { leagues: LeagueSummary[]; 
         qs.set("league", e.target.value);
         router.push(`?${qs.toString()}`);
       }}
-      className="pixel-btn shrink-0 bg-night-700 px-2 py-1 text-sm font-semibold text-white"
+      className="pixel-tag shrink-0 bg-night-700 px-1.5 py-0.5 text-xs font-semibold text-white"
     >
       {leagues.map((l) => (
         <option key={l.slug} value={l.slug}>
