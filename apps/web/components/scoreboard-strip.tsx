@@ -1,11 +1,24 @@
 import Link from "next/link";
-import { effectiveStatus, type MatchSummary, type TeamSummary } from "@arena/types";
+import { effectiveStatus, type LeagueSummary, type MatchSummary, type TeamSummary } from "@arena/types";
 import { getMatches } from "@/lib/api";
 import { etDate, formatEtDate, formatKickoffTime, shiftEtDate } from "@/lib/format";
 import { TeamCrest } from "@/components/team-crest";
+import { LeagueSelect } from "@/components/league-select";
 
-/** ESPN-style horizontal score ticker for one day, scoped to the current category. */
-export async function ScoreboardStrip({ categorySlug, date }: { categorySlug: string; date: string }) {
+/**
+ * ESPN-style horizontal score ticker for one day. On category pages, `categorySlug` is fixed and
+ * no dropdown is shown (the page itself is already scoped to one sport). Pass `leagues` (e.g. on
+ * the homepage) to show a dropdown for picking which league's scoreboard to display instead.
+ */
+export async function ScoreboardStrip({
+  categorySlug,
+  date,
+  leagues,
+}: {
+  categorySlug: string;
+  date: string;
+  leagues?: LeagueSummary[];
+}) {
   const { data } = await getMatches({ date });
   const matches = (data ?? [])
     .filter((m) => m.league.slug.startsWith(categorySlug) || m.league.sport.slug === categorySlug)
@@ -15,6 +28,8 @@ export async function ScoreboardStrip({ categorySlug, date }: { categorySlug: st
 
   return (
     <div className="flex items-stretch gap-3">
+      {leagues && <LeagueSelect leagues={leagues} selected={categorySlug} />}
+
       <div className="flex shrink-0 flex-col items-center gap-1.5">
         {isToday ? (
           <span className="pixel-btn px-3 py-1 text-sm text-white/30">‹</span>
